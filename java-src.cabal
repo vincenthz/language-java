@@ -27,6 +27,7 @@ Library
 
   Exposed-modules:      Language.Java.Lexer,
                         Language.Java.Syntax,
-                        Language.Java.Parser3
+                        Language.Java.Parser3,
+                        Language.Java.Pretty
   
   Other-modules:	
