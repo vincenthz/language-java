@@ -162,7 +162,7 @@
 
 > normalClassDecl   :: { Mod ClassDecl }
 >       : 'class' ident lopt(typeParams) opt(extends) lopt(implements) classBody
->               { \ms -> ClassDecl ms $2 $3 (head $4) $5 $6 }
+>               { \ms -> ClassDecl ms $2 $3 ((fmap head) $4) $5 $6 }
 -- TODO: check that the extends clause only contains one type.
 
 > enumClassDecl     :: { Mod ClassDecl }
@@ -186,7 +186,7 @@
 >       : ';' classBodyDecls                    { $2 }
 
 > enumConst         :: { EnumConstant }
->       : ident opt(args) opt(classBody)
+>       : ident lopt(args) opt(classBody)
 >               { EnumConstant $1 $2 $3 }
 
 > classBodyDecls    :: { [Decl] }
@@ -232,12 +232,12 @@
 
 > constrBody            :: { ConstructorBody }
 >       : '{' opt(explConstrInv) list(blockStmt) '}'
->               { ConstructorBody $1 $2 }
+>               { ConstructorBody $2 $3 }
 
 > explConstrInv         :: { ExplConstrInv }
->      :             lopt(refTypeArgs) 'this'  args ';'      { ThisInvoke  $1 $4 }
->      |             lopt(refTypeArgs) 'super' args ';'      { SuperInvoke $1 $4 }
->      | primary '.' lopt(refTypeArgs) 'super' args ';'      { PrimarySuperInvoke $1 $3 $6 }
+>      :             lopt(refTypeArgs) 'this'  args ';'      { ThisInvoke  $1 $3 }
+>      |             lopt(refTypeArgs) 'super' args ';'      { SuperInvoke $1 $3 }
+>      | primary '.' lopt(refTypeArgs) 'super' args ';'      { PrimarySuperInvoke $1 $3 $5 }
 
 -- TODO: This should be parsed like class bodies, and post-checked.
 --       That would give far better error messages.
@@ -259,6 +259,29 @@
 >       : 'throws' seplist1(refType,',')      { $2 }
 
 
+-- Formal parameters
+
+> formalParams             :: { [FormalParam] }
+>       : '(' formalParamsAux ')'                           { $2 }
+
+> formalParamsAux          :: { [FormalParam] }
+>       : {- empty -}                                       { [] }
+>       | lastFormalParam                                   { [$1] }
+>       | seplist1(formalParam,',') ',' lastFormalParam     { $1 ++ [$3] }
+
+> lastFormalParam       :: { FormalParam }
+>       : list(modifier) type optEllipsis varDeclId
+>           { FormalParam $1 $2 $3 $4 }         -- TODO: modifier = final
+
+> formalParam           :: { FormalParam }
+>       : list(modifier) type varDeclId
+>           { FormalParam $1 $2 False $3 }      -- TODO: modifier = final
+
+> optEllipsis           :: { Bool }
+>       : '.' '.' '.'       { True }
+>       | {- empty -}       { False }
+
+
 -- Modifiers
 
 > modifier      :: { Modifier }
@@ -274,18 +297,45 @@
 >       | 'volatile'                { Volatile }
 
 ----------------------------------------------------------------------------
+-- Variable declarations
+
+> varDecl           :: { VarDecl }
+>       : varDeclId opt(varInit)            { VarDecl $1 $2 }
+
+> varDeclId         :: { VarDeclId }
+>       : ident list(arrBrackets)
+>               { foldr (\_ f -> VarDeclArray . f) VarId $2 $1 }
+
+> varDecls          :: { [VarDecl] }
+>       : seplist1(varDecl,',')             { $1 }
+
+> arrBrackets       :: { () }
+>       : '[' ']'                           { () }
+
+> localVarDecl      :: { ([Modifier], Type, [VarDecl]) }
+>       : list(modifier) type varDecls      { ($1,$2,$3) }
+        -- TODO: modifier = public protected private static final transient volatile
+
+> varInit               :: { VarInit }
+>       : '=' exp                   { InitExp $2 }
+>       | '=' arrayInit             { InitArray $2 }
+
+> arrayInit             :: { ArrayInit }
+>       : '{' seplist(varInit,',') opt(',') '}' { ArrayInit $2 }
+
+----------------------------------------------------------------------------
 -- Statements
 
 > block                 :: { Block }
 >       : '{' list(blockStmt) '}'                   { Block $2 }
 
 > blockStmt             :: { BlockStmt }
->       : classDecl                                 { LocalClass $1 }
+>       : list(modifier) classDecl                  { LocalClass ($2 $1) }
 >       | localVarDecl ';'    { let (m,t,vds) = $1 in LocalVars m t vds }
 >       | stmt                                      { BlockStmt $1 }
 
 > stmt                  :: { Stmt }
->       : ident ':' stmt                            { Labelled $1 $3 }
+>       : ident ':' stmt                            { Labeled $1 $3 }
 >       | 'if' '(' exp ')' stmt                     { IfThen $3 $5 }
 >       | 'if' '(' exp ')' stmtNSI 'else' stmt      { IfThenElse $3 $5 $7 }
 >       | 'while' '(' exp ')' stmt                  { While $3 $5 }
@@ -312,7 +362,7 @@
 
 > stmtNSI               :: { Stmt }
 >       : stmtNoTrail                               { $1 }
->       | ident ':' stmtNSI                         { Labelled $1 $3 }
+>       | ident ':' stmtNSI                         { Labeled $1 $3 }
 >       | 'if' '(' exp ')' stmtNSI 'else' stmtNSI   { IfThenElse $3 $5 $7 }
 >       | 'while' '(' exp ')' stmtNSI               { While $3 $5 }
 >       | 'for' '(' opt(forInit) ';' opt(exp) ';' opt(forUp) ')' stmtNSI
@@ -355,6 +405,120 @@
 ----------------------------------------------------------------------------
 -- Expressions
 
+> stmtExp :: { Exp }
+>       : postIncDec                { $1 }
+>       | preIncDec                 { $1 }
+>       | assignment                { $1 }
+>       | methodInvocation          { MethodInv $1 }
+>       | instanceCreation          { $1 }
+
+> postIncDec            :: { Exp }
+>       : postfixExp postfixOp      { $2 $1 }
+
+> preIncDec             :: { Exp }
+>       : preIncDecOp unaryExp      { $1 $2 }
+
+> assignment            :: { Exp }
+>       : lhs assignOp assignExp        { Assign $1 $2 $3 }
+
+> lhs                   :: { Lhs }
+>       : name                          { NameLhs $1 }
+>       | fieldAccess                   { FieldLhs $1 }
+>       | arrayAccess                   { ArrayLhs (fst $1) (snd $1) }
+
+> exp                   :: { Exp }
+>       : assignExp                     { $1 }
+
+> assignExp             :: { Exp }
+>       : assignment                    { $1 }
+>       | condExp                       { $1 }
+
+> condExp               :: { Exp }
+>       : condExp '?' exp ':' condExp   { Cond $1 $3 $5 }
+>       | infixExp                      { $1 }
+
+-- TODO: Fix precedence
+> infixExp              :: { Exp }
+>       : infixExp infixOp unaryExp     { BinOp $1 $2 $3 }
+>       | infixExp 'instanceof' refType { InstanceOf $1 $3 }
+
+> unaryExp              :: { Exp }
+>       : preIncDec                     { $1 }
+>       | prefixOp unaryExp             { $1 $2 }
+>       | '(' type ')' unaryExp         { Cast $2 $4 }
+>       | postfixExp                    { $1 }
+
+
+> postfixExp            :: { Exp }
+>       : primary               { $1 }
+>       | name                  { ExpName $1 }
+>       | postIncDec            { $1 }
+
+
+> primary               :: { Exp }
+>       : primaryNoNewArray         { $1 }
+>       | arrayCreation             { $1 }
+
+> primaryNoNewArray     :: { Exp }
+>       : literal                   { Lit $1 }
+>       | resultType '.' 'class'    { ClassLit $1 }
+>       | 'this'                    { This }
+>       | name '.' 'this'           { ThisClass $1 }
+>       | '(' exp ')'               { Paren $2 }
+>       | instanceCreation          { $1 }
+>       | fieldAccess               { FieldAccess $1 }
+>       | methodInvocation          { MethodInv $1 }
+>       | arrayAccess               { ArrayAccess (fst $1) (snd $1) }
+
+> instanceCreation      :: { Exp }
+>       :             'new' lopt(typeArgs) classType args opt(classBody)
+>              { InstanceCreation $2 $3 $4 $5 }
+>       | primary '.' 'new' lopt(typeArgs) ident args opt(classBody)
+>              { QualInstanceCreation $1 $4 $5 $6 $7 }
+
+> fieldAccess          :: { FieldAccess }
+>       : primary '.' ident             { PrimaryFieldAccess $1 $3 }
+>       | 'super' '.' ident             { SuperFieldAccess      $3 }
+>       | name '.' 'super' '.' ident    { ClassFieldAccess   $1 $5 }
+
+> methodInvocation     :: { MethodInvocation }
+>       : name args                 { MethodCall $1 $2 }
+>       | primary '.' lopt(refTypeArgs) ident args      
+>               { PrimaryMethodCall $1 $3 $4 $5 }
+>       | 'super' '.' lopt(refTypeArgs) ident args
+>               { SuperMethodCall      $3 $4 $5 }
+>       | name '.' 'super' '.' lopt(refTypeArgs) ident args
+>               { ClassMethodCall   $1 $5 $6 $7 }
+>       | name '.' lopt(refTypeArgs) ident args
+>               { TypeMethodCall    $1 $3 $4 $5 }
+
+> args                  :: { [Argument] }
+>       : '(' seplist(exp,',') ')'               { $2 }
+
+-- Arrays
+
+> arrayAccess            :: { (Exp, Exp) }
+>       : arrayRef '[' exp ']'          { ($1, $3) }
+
+> arrayRef              :: { Exp }
+>       : name                          { ExpName $1 }
+>       | primaryNoNewArray             { $1 }
+
+> arrayCreation         :: { Exp }
+>       : 'new' type list1(dimExpr) dims        { ArrayCreate $2 $3 $4 }
+>       | 'new' type dims1 arrayInit            { ArrayCreateInit $2 $3 $4 }
+
+> dimExpr               :: { Exp }
+>       : '[' exp ']'                   { $2 }
+
+> dims                  :: { Int }
+>       : opt(dims1)                    { maybe 0 id $1 }
+
+> dims1                 :: { Int }
+>       : list1(dim)                    { length $1 }
+
+> dim                   :: { () }
+>       : '[' ']'                       { () }
 
 -- Literals
 
@@ -406,10 +570,12 @@
 >       | '^='                          { XorA }
 >       | '|='                          { OrA }
 
-> prefixOp              :: { Exp -> Exp }
+> preIncDecOp           :: { Exp -> Exp }
 >       : '++'                          { PreIncrement }
 >       | '--'                          { PreDecrement }
->       | '!'                           { PreNot }
+
+> prefixOp              :: { Exp -> Exp }
+>       : '!'                           { PreNot }
 >       | '~'                           { PreBitCompl }
 >       | '+'                           { PrePlus }
 >       | '-'                           { PreMinus }
@@ -437,8 +603,9 @@
 
 > refType       :: { RefType }
 >       : type '[' ']'                          { ArrayType $1 }
->       | ident                                 { TypeVariable $1 }
 >       | classType                             { ClassRefType $1 }
+-- No longer relevant:
+       | ident                                 { TypeVariable $1 }
 
 > classType     :: { ClassType }
 >       : seplist1(classTypeSpec,'.')           { ClassType $1 }
@@ -457,7 +624,7 @@
 -- Type parameters and arguments
 
 > typeParams    :: { [TypeParam] }
->       : '<' seplist(typeParam,',') '>'    { $2 }
+>       : '<' seplist1(typeParam,',') '>'    { $2 }
 
 > typeParam     :: { TypeParam }
 >       : ident lopt(bounds)                { TypeParam $1 $2 }
@@ -467,7 +634,7 @@
 
 
 > typeArgs      :: { [TypeArgument] }
->       : '<' seplist(typeArg,',') '>'      { $2 }
+>       : '<' seplist1(typeArg,',') '>'      { $2 }
 
 > typeArg       :: { TypeArgument }
 >       : refType                           { ActualType $1 }
@@ -499,7 +666,7 @@
 
 > bopt(p)   : opt(p)                { maybe False (const True) $1 }
     
-> fopt(p)   : opt(p)                { maybe id id $1 }
+ fopt(p)   : opt(p)                { maybe id id $1 }
 
 > list(p)   : list1(p)              { $1 }
 >           |                       { [] }
@@ -513,35 +680,8 @@
 > seplist1(p,s) : p                     { [$1] }
 >               | p s seplist1(p,s)     { $1 : $3 }
 
-> flist(p)  : list(p)               { foldr (.) id $1 }
+ flist(p)  : list(p)               { foldr (.) id $1 }
 
-
-----------------------------------------------------------------------------
--- Bogus
-
-> stmtExp :: { Exp }
->       : { undefined }
-
-> exp :: { Exp }
->       : { undefined }
-
-> primary :: { Exp }
->       : { undefined }
-
-> args :: { [Argument] }
->       : { [] }
-
-> formalParams :: { [FormalParam] }
->       : { [] }
-
-> formalParam :: { FormalParam }
->       : { undefined }
-
-> varDecls :: { [VarDecl] }
->       : { [] }
-
-> localVarDecl :: { ([Modifier], Type, [VarDecl]) }
->       : { ([], undefined, []) }
 
 ----------------------------------------------------------------------------
 -- Helper functions
