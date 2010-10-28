@@ -13,6 +13,13 @@ Tested-with:            GHC==6.10.2
 Build-Type:             Simple
 Cabal-Version:          >= 1.2
 
+Extra-Source-Files:
+			test/abstract.java
+			test/rawTypes.java
+			test/test.java
+			test/typeVarMembers.java
+			Language/Java/Lexer.x
+
 Flag base4
 
 Library
