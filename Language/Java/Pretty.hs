@@ -27,6 +27,7 @@ instance Pretty ImportDecl where
   pretty (ImportDecl st name wc) = 
     text "import" <+> opt st (text "static")
                   <+> pretty name <> opt wc (text ".*")
+                  <> semi
 
 -----------------------------------------------------------------------
 -- Declarations
@@ -37,22 +38,20 @@ instance Pretty TypeDecl where
 
 instance Pretty ClassDecl where
   pretty (EnumDecl mods ident impls body) = 
-    hsep [text "enum"
-          , hsep (map pretty mods)
+    hsep [hsep (map pretty mods)
+          , text "enum"
           , pretty ident 
           , ppImplements impls
-          , pretty body
-         ]
+         ] $$ pretty body
 
   pretty (ClassDecl mods ident tParams mSuper impls body) =
-    hsep [text "class"
-          , hsep (map pretty mods)
+    hsep [hsep (map pretty mods)
+          , text "class"
           , pretty ident
           , ppTypeParams tParams
           , ppExtends (maybe [] return mSuper)
           , ppImplements impls
-          , pretty body
-         ]
+         ] $$ pretty body
 
 instance Pretty ClassBody where
   pretty (ClassBody ds) = 
@@ -69,17 +68,16 @@ instance Pretty EnumConstant where
     pretty ident 
         -- needs special treatment since even the parens are optional
         <> opt (not $ null args) (ppArgs args) 
-      <+> maybePP mBody
+      $$ maybePP mBody
 
 instance Pretty InterfaceDecl where
   pretty (InterfaceDecl mods ident tParams impls body) =
-    hsep [text "interface"
-          , hsep (map pretty mods)
+    hsep [hsep (map pretty mods)
+          , text "interface"
           , pretty ident
           , ppTypeParams tParams
           , ppImplements impls
-          , pretty body
-         ]
+         ] $$ pretty body
 
 instance Pretty InterfaceBody where
   pretty (InterfaceBody mds) =
@@ -92,7 +90,7 @@ instance Pretty Decl where
 
 instance Pretty MemberDecl where
   pretty (FieldDecl mods t vds) =
-    hsep (map pretty mods ++ pretty t:map pretty vds)
+    hsep (map pretty mods ++ pretty t:map pretty vds) <> semi
 
   pretty (MethodDecl mods tParams mt ident fParams throws body) =
     hsep [hsep (map pretty mods)
@@ -101,8 +99,18 @@ instance Pretty MemberDecl where
           , pretty ident
           , ppArgs fParams
           , ppThrows throws
-          , pretty body
-         ]
+         ] $$ pretty body
+
+  pretty (ConstructorDecl mods tParams ident fParams throws body) =
+    hsep [hsep (map pretty mods)
+          , ppTypeParams tParams
+          , pretty ident
+          , ppArgs fParams
+          , ppThrows throws
+         ] $$ pretty body
+
+  pretty (MemberClassDecl cd) = pretty cd
+  pretty (MemberInterfaceDecl id) = pretty id
 
 instance Pretty VarDecl where
   pretty (VarDecl vdId mInit) =
@@ -204,7 +212,7 @@ instance Pretty Stmt where
 
   pretty (Switch e sBlocks) =
     text "switch" <+> parens (pretty e) 
-      <+> braceBlock (map pretty sBlocks)
+      $$ braceBlock (map pretty sBlocks)
 
   pretty (Do stmt e) =
     hsep [text "do", pretty stmt, text "while"
@@ -220,13 +228,13 @@ instance Pretty Stmt where
     text "return" <+> maybePP mE <> semi
   
   pretty (Synchronized e block) =
-    text "synchronized" <+> parens (pretty e) <+> pretty block
+    text "synchronized" <+> parens (pretty e) $$ pretty block
   
   pretty (Throw e) =
     text "throw" <+> pretty e <> semi
   
   pretty (Try block catches mFinally) =
-    text "try" <+> pretty block $$
+    text "try" $$ pretty block $$
       vcat (map pretty catches ++ [ppFinally mFinally])
    where ppFinally Nothing = empty
          ppFinally (Just bl) = text "finally" <+> pretty bl
@@ -236,7 +244,7 @@ instance Pretty Stmt where
 
 instance Pretty Catch where
   pretty (Catch fParam block) =
-    hsep [text "catch", parens (pretty fParam), pretty block]
+    hsep [text "catch", parens (pretty fParam)] $$ pretty block
 
 instance Pretty SwitchBlock where
   pretty (SwitchBlock lbl stmts) =
@@ -273,15 +281,13 @@ instance Pretty Exp where
     hsep [text "new" 
           , ppTypeParams tArgs 
           , pretty ct <> ppArgs args
-          , maybePP mBody
-         ]
+         ] $$ maybePP mBody
   
   pretty (QualInstanceCreation e tArgs ident args mBody) =
     hsep [pretty e <> char '.' <> text "new"
           , ppTypeParams tArgs
           , pretty ident <> ppArgs args
-          , maybePP mBody
-         ]
+         ] $$ maybePP mBody
 
   pretty (ArrayCreate t es k) =
     text "new" <+> 
@@ -509,5 +515,5 @@ opt x a = if x then a else empty
 
 braceBlock :: [Doc] -> Doc
 braceBlock xs = char '{'
-    $$ nest 2 (vcat xs)
-    $$ char '}'
+    $+$ nest 2 (vcat xs)
+    $+$ char '}'
