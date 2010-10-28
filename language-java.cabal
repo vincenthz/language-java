@@ -7,7 +7,7 @@ Maintainer:             Niklas Broberg <niklas.broberg@chalmers.se>
 Category:               Language
 Synopsis:               Manipulating Java source: abstract syntax, lexer, parser, and pretty-printer
 Description:            Java source manipulation.
-                        .
+Homepage:               http://code.haskell.org/language-java
 Stability:              Experimental
 Tested-with:            GHC==6.10.2
 Build-Type:             Simple
