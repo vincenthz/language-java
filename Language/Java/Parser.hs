@@ -1,4 +1,35 @@
-module Language.Java.Parser where
+module Language.Java.Parser (
+    parser, 
+    
+    compilationUnit, packageDecl, importDecl, typeDecl,
+    
+    classDecl, interfaceDecl,
+    
+    memberDecl, fieldDecl, methodDecl, constrDecl,
+    interfaceMemberDecl, absMethodDecl,
+    
+    formalParams, formalParam,
+    
+    modifier,
+    
+    varDecls, varDecl,
+    
+    block, blockStmt, stmt,
+    
+    stmtExp, exp, primary, literal,
+    
+    ttype, primType, refType, classType, resultType,
+    
+    typeParams, typeParam,
+    
+    name, ident,
+    
+    
+    empty, list, list1, seplist, seplist1, opt, bopt, lopt,
+    
+    comma, semiColon, period, colon
+    
+    ) where
 
 import Language.Java.Lexer ( L(..), Token(..), lexer)
 import Language.Java.Syntax
