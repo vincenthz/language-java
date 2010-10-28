@@ -234,7 +234,7 @@ constrDecl = do
 
 constrBody :: P ConstructorBody
 constrBody = braces $ do
-    mec <- opt explConstrInv
+    mec <- opt (try explConstrInv)
     bss <- list blockStmt
     return $ ConstructorBody mec bss
     
