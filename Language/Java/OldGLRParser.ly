@@ -580,6 +580,7 @@
 > infixExp              :: { Exp }
 >       : infixExp infixOp unaryExp     { BinOp $1 $2 $3 }
 >       | infixExp 'instanceof' refType { InstanceOf $1 $3 }
+>       | unaryExp                      { $1 }
 
 > unaryExp              :: { Exp }
 >       : preIncDec                     { $1 }
