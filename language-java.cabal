@@ -11,7 +11,7 @@ Homepage:               http://code.haskell.org/language-java
 Stability:              Experimental
 Tested-with:            GHC==6.10.2
 Build-Type:             Simple
-Cabal-Version:          >= 1.2
+Cabal-Version:          >= 1.6
 
 Extra-Source-Files:
 			test/abstract.java
@@ -20,6 +20,10 @@ Extra-Source-Files:
 			test/typeVarMembers.java
 			test/LexerTest.hs
 			Language/Java/Lexer.x
+
+source-repository head
+  type:                 darcs
+  location:             http://code.haskell.org/language-java/
 
 Flag base4
 
