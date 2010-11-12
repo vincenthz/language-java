@@ -18,6 +18,7 @@ Extra-Source-Files:
 			test/rawTypes.java
 			test/test.java
 			test/typeVarMembers.java
+			test/LexerTest.hs
 			Language/Java/Lexer.x
 
 Flag base4
