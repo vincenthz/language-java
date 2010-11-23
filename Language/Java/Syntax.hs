@@ -1,17 +1,33 @@
 module Language.Java.Syntax where
 
+#ifdef __GLASGOW_HASKELL__
+#ifdef BASE4
+import Data.Data
+#else
+import Data.Generics (Data(..),Typeable(..))
+#endif
+#endif
+
 -----------------------------------------------------------------------
 -- Packages
 
 
 -- | A compilation unit is the top level syntactic goal symbol of a Java program.
 data CompilationUnit = CompilationUnit (Maybe PackageDecl) [ImportDecl] [TypeDecl]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A package declaration appears within a compilation unit to indicate the package to which the compilation unit belongs.
 data PackageDecl = PackageDecl Name
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An import declaration allows a static member or a named type to be referred to by a single unqualified identifier. 
 --   The first argument signals whether the declaration only imports static members.
@@ -19,7 +35,11 @@ data PackageDecl = PackageDecl Name
 --   a single name into scope.
 data ImportDecl
     = ImportDecl Bool {- static? -} Name Bool {- .*? -}
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -----------------------------------------------------------------------
@@ -29,28 +49,48 @@ data ImportDecl
 data TypeDecl
     = ClassTypeDecl ClassDecl
     | InterfaceTypeDecl InterfaceDecl
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A class declaration specifies a new named reference type.
 data ClassDecl
     = ClassDecl [Modifier] Ident [TypeParam] (Maybe RefType) [RefType] ClassBody
     | EnumDecl  [Modifier] Ident                             [RefType] EnumBody
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A class body may contain declarations of members of the class, that is, 
 --   fields, classes, interfaces and methods. 
 --   A class body may also contain instance initializers, static 
 --   initializers, and declarations of constructors for the class.
 data ClassBody = ClassBody [Decl]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | The body of an enum type may contain enum constants.
 data EnumBody = EnumBody [EnumConstant] [Decl]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An enum constant defines an instance of the enum type.
 data EnumConstant = EnumConstant Ident [Argument] (Maybe ClassBody)
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An interface declaration introduces a new reference type whose members 
 --   are classes, interfaces, constants and abstract methods. This type has 
@@ -58,19 +98,31 @@ data EnumConstant = EnumConstant Ident [Argument] (Maybe ClassBody)
 --   providing implementations for its abstract methods.
 data InterfaceDecl
     = InterfaceDecl [Modifier] Ident [TypeParam] [RefType] InterfaceBody
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | The body of an interface may declare members of the interface.
 data InterfaceBody
     = InterfaceBody [MemberDecl]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A declaration is either a member declaration, or a declaration of an
 --   initializer, which may be static.
 data Decl
     = MemberDecl MemberDecl
     | InitDecl Bool Block
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A class or interface member can be an inner class or interface, a field or
@@ -87,42 +139,70 @@ data MemberDecl
     | MemberClassDecl ClassDecl
     -- | A member interface is an interface whose declaration is directly enclosed in another class or interface declaration.
     | MemberInterfaceDecl InterfaceDecl
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A declaration of a variable, which may be explicitly initialized.
 data VarDecl
     = VarDecl VarDeclId (Maybe VarInit)
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | The name of a variable in a declaration, which may be an array.
 data VarDeclId
     = VarId Ident
     | VarDeclArray VarDeclId        
     -- ^ Multi-dimensional arrays are represented by nested applications of 'VarDeclArray'.
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | Explicit initializer for a variable declaration.
 data VarInit
     = InitExp Exp
     | InitArray ArrayInit
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A formal parameter in method declaration. The last parameter
 --   for a given declaration may be marked as variable arity,
 --   indicated by the boolean argument.
 data FormalParam = FormalParam [Modifier] Type Bool VarDeclId
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A method body is either a block of code that implements the method or simply a 
 --   semicolon, indicating the lack of an implementation (modelled by 'Nothing').
 data MethodBody = MethodBody (Maybe Block)
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | The first statement of a constructor body may be an explicit invocation of
 --   another constructor of the same class or of the direct superclass.
 data ConstructorBody = ConstructorBody (Maybe ExplConstrInv) [BlockStmt]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An explicit constructor invocation invokes another constructor of the 
 --   same class, or a constructor of the direct superclass, which may
@@ -132,7 +212,11 @@ data ExplConstrInv
     = ThisInvoke             [RefType] [Argument]
     | SuperInvoke            [RefType] [Argument]
     | PrimarySuperInvoke Exp [RefType] [Argument]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A modifier specifying properties of a given declaration. In general only
@@ -149,7 +233,11 @@ data Modifier
     | Transient
     | Volatile
     | Native
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -----------------------------------------------------------------------
 -- Statements
@@ -157,7 +245,11 @@ data Modifier
 -- | A block is a sequence of statements, local class declarations 
 --   and local variable declaration statements within braces.
 data Block = Block [BlockStmt]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 
@@ -167,7 +259,11 @@ data BlockStmt
     = BlockStmt Stmt
     | LocalClass ClassDecl
     | LocalVars [Modifier] Type [VarDecl]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A Java statement.
@@ -217,30 +313,50 @@ data Stmt
     | Try Block [Catch] (Maybe {- finally -} Block)
     -- | Statements may have label prefixes.
     | Labeled Ident Stmt
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | If a value is thrown and the try statement has one or more catch clauses that can catch it, then control will be 
 --   transferred to the first such catch clause.
 data Catch = Catch FormalParam Block
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A block of code labelled with a @case@ or @default@ within a @switch@ statement.
 data SwitchBlock
     = SwitchBlock SwitchLabel [BlockStmt]    
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A label within a @switch@ statement. 
 data SwitchLabel
     -- | The expression contained in the @case@ must be a 'Lit' or an @enum@ constant.
     = SwitchCase Exp
     | Default
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | Initialization code for a basic @for@ statement.
 data ForInit
     = ForLocalVars [Modifier] Type [VarDecl]
     | ForInitExps [Exp]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An exception type has to be a class type or a type variable.
 type ExceptionType = RefType -- restricted to ClassType or TypeVariable
@@ -320,7 +436,11 @@ data Exp
     | Cond Exp Exp Exp
     -- | Assignment of the result of an expression to a variable.
     | Assign Lhs AssignOp Exp
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A literal denotes a fixed, unchanging value.
 data Literal
@@ -332,18 +452,30 @@ data Literal
     | Char Char
     | String String
     | Null
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A binary infix operator.
 data Op = Mult | Div | Rem | Add | Sub | LShift | RShift | RRShift
         | LThan | GThan | LThanE | GThanE | Equal | NotEq
         | And | Or | Xor | CAnd | COr
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An assignment operator.
 data AssignOp = EqualA | MultA | DivA | RemA | AddA | SubA
               | LShiftA | RShiftA | RRShiftA | AndA | XorA | OrA
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | The left-hand side of an assignment expression. This operand may be a named variable, such as a local 
 --   variable or a field of the current object or class, or it may be a computed variable, as can result from 
@@ -352,7 +484,11 @@ data Lhs
     = NameLhs Name          -- ^ Assign to a variable
     | FieldLhs FieldAccess  -- ^ Assign through a field access
     | ArrayLhs Exp Exp      -- ^ Assign to an array
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A field access expression may access a field of an object or array, a reference to which is the value 
 --   of either an expression or the special keyword super.
@@ -360,7 +496,11 @@ data FieldAccess
     = PrimaryFieldAccess Exp Ident      -- ^ Accessing a field of an object or array computed from an expression.
     | SuperFieldAccess Ident            -- ^ Accessing a field of the superclass.
     | ClassFieldAccess Name Ident       -- ^ Accessing a (static) field of a named class.
-  deriving (Eq, Show)    
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A method invocation expression is used to invoke a class or instance method.
@@ -375,13 +515,21 @@ data MethodInvocation
     | ClassMethodCall Name [RefType] Ident [Argument]
     -- | Invoking a method of a named type, giving arguments for any generic type parameters.
     | TypeMethodCall  Name [RefType] Ident [Argument]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | An array initializer may be specified in a declaration, or as part of an array creation expression, creating an 
 --   array and providing some initial values
 data ArrayInit
     = ArrayInit [VarInit]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -----------------------------------------------------------------------
@@ -392,7 +540,11 @@ data ArrayInit
 data Type
     = PrimType PrimType
     | RefType RefType
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | There are three kinds of reference types: class types, interface types, and array types. 
 --   Reference types may be parameterized with type arguments.
@@ -402,25 +554,41 @@ data RefType
     = ClassRefType ClassType
     {- | TypeVariable Ident -}
     | ArrayType Type
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A class or interface type consists of a type declaration specifier, 
 --   optionally followed by type arguments (in which case it is a parameterized type).
 data ClassType
     = ClassType [(Ident, [TypeArgument])]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | Type arguments may be either reference types or wildcards.
 data TypeArgument
     = Wildcard (Maybe WildcardBound)
     | ActualType RefType
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | Wildcards may be given explicit bounds, either upper (@extends@) or lower (@super@) bounds.
 data WildcardBound
     = ExtendsBound RefType
     | SuperBound RefType
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A primitive type is predefined by the Java programming language and named by its reserved keyword.
 data PrimType
@@ -432,13 +600,21 @@ data PrimType
     | CharT
     | FloatT
     | DoubleT
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -- | A class is generic if it declares one or more type variables. These type variables are known 
 --   as the type parameters of the class.
 data TypeParam = TypeParam Ident [RefType]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 
 -----------------------------------------------------------------------
@@ -446,8 +622,16 @@ data TypeParam = TypeParam Ident [RefType]
 
 -- | A single identifier.
 data Ident = Ident String
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
 
 -- | A name, i.e. a period-separated list of identifiers.
 data Name = Name [Ident]
-  deriving (Eq, Show)
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
