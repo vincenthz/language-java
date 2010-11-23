@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP, DeriveDataTypeable #-}
 module Language.Java.Syntax where
 
 #ifdef __GLASGOW_HASKELL__
