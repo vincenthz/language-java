@@ -598,7 +598,7 @@ assignment = do
 
 lhs :: P Lhs
 lhs = try (FieldLhs <$> fieldAccess)
-    <|> try (uncurry ArrayLhs <$> arrayAccess)
+    <|> try (ArrayLhs <$> arrayAccess)
     <|> NameLhs <$> name
 
 
@@ -687,11 +687,11 @@ primaryNoNewArrayNPS =
     try instanceCreationNPS <|>
     try (MethodInv <$> methodInvocationNPS) <|>
     try (FieldAccess <$> fieldAccessNPS) <|>
-    uncurry ArrayAccess <$> arrayAccessNPS
+    ArrayAccess <$> arrayAccessNPS
 
 primarySuffix :: P (Exp -> Exp)
 primarySuffix = try instanceCreationSuffix <|>
-    try ((uncurry ArrayAccess .) <$> arrayAccessSuffix) <|>
+    try ((ArrayAccess .) <$> arrayAccessSuffix) <|>
     try ((MethodInv .) <$> methodInvocationSuffix) <|>
     (FieldAccess .) <$> fieldAccessSuffix
 
@@ -858,23 +858,23 @@ args = parens $ seplist exp comma
 
 -- Arrays
 
-arrayAccessNPS :: P (Exp, Exp)
+arrayAccessNPS :: P ArrayIndex
 arrayAccessNPS = do
     n <- name
     e <- brackets exp
-    return (ExpName n, e)
+    return $ ArrayIndex (ExpName n) e
 
-arrayAccessSuffix :: P (Exp -> (Exp, Exp))
+arrayAccessSuffix :: P (Exp -> ArrayIndex)
 arrayAccessSuffix = do
     e <- brackets exp
-    return $ \ref -> (ref, e)
+    return $ \ref -> ArrayIndex ref e
     
 arrayAccess = try arrayAccessNPS <|> do
     p <- primaryNoNewArrayNPS
     ss <- list primarySuffix
     let aap = foldr (\s a -> s a) p ss
     case aap of
-     ArrayAccess ref e -> return (ref, e)
+     ArrayAccess ain -> return ain
      _ -> fail ""
 
 {-

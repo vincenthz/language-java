@@ -404,7 +404,8 @@ data Exp
     -- | A method invocation expression.
     | MethodInv MethodInvocation
     -- | An array access expression refers to a variable that is a component of an array.
-    | ArrayAccess Exp Exp -- Should this be made into a datatype, for consistency and use with Lhs?
+    | ArrayAccess ArrayIndex
+{-    | ArrayAccess Exp Exp -- Should this be made into a datatype, for consistency and use with Lhs? -}
     -- | An expression name, e.g. a variable.
     | ExpName Name
     -- | Post-incrementation expression, i.e. an expression followed by @++@.
@@ -484,7 +485,15 @@ data AssignOp = EqualA | MultA | DivA | RemA | AddA | SubA
 data Lhs
     = NameLhs Name          -- ^ Assign to a variable
     | FieldLhs FieldAccess  -- ^ Assign through a field access
-    | ArrayLhs Exp Exp      -- ^ Assign to an array
+    | ArrayLhs ArrayIndex   -- ^ Assign to an array
+#ifdef __GLASGOW_HASKELL__
+  deriving (Eq,Ord,Show,Typeable,Data)
+#else
+  deriving (Eq,Ord,Show)
+#endif
+
+-- | Array access
+data ArrayIndex = ArrayIndex Exp Exp    -- ^ Index into an array
 #ifdef __GLASGOW_HASKELL__
   deriving (Eq,Ord,Show,Typeable,Data)
 #else

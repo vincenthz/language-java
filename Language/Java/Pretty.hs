@@ -303,8 +303,7 @@ instance Pretty Exp where
   
   pretty (MethodInv mi) = pretty mi
   
-  pretty (ArrayAccess ref e) =
-    pretty ref <> brackets (pretty e)
+  pretty (ArrayAccess ain) = pretty ain
 
   pretty (ExpName name) = pretty name
   
@@ -389,7 +388,10 @@ instance Pretty AssignOp where
 instance Pretty Lhs where
   pretty (NameLhs name) = pretty name
   pretty (FieldLhs fa) = pretty fa
-  pretty (ArrayLhs ref e) = pretty ref <> brackets (pretty e)
+  pretty (ArrayLhs ain) = pretty ain
+
+instance Pretty ArrayIndex where
+  pretty (ArrayIndex ref e) = pretty ref <> brackets (pretty e)
 
 instance Pretty FieldAccess where
   pretty (PrimaryFieldAccess e ident) =
