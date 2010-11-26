@@ -6,6 +6,9 @@ import Data.Char (toLower)
 import Language.Java.Syntax
 
 
+prettyPrint :: Pretty a => a -> String
+prettyPrint = show . pretty
+
 class Pretty a where
   pretty :: a -> Doc
   pretty = prettyPrec 0
