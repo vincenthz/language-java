@@ -95,8 +95,8 @@ tokens  :-
     0 $octdig+ [lL] { \p s -> L (pos p) $ LongTok (fst . head $ readOct (init s)) }
     $nonzero $digit*        { \p s -> L (pos p) $ IntTok (read s) }
     $nonzero $digit* [lL]   { \p s -> L (pos p) $ LongTok (read (init s)) }
-    0 [xX] $hexdig          { \p s -> L (pos p) $ IntTok (fst . head $ readHex (drop 2 s)) }
-    0 [xX] $hexdig [lL]     { \p s -> L (pos p) $ IntTok (fst . head $ readHex (init (drop 2 s))) }
+    0 [xX] $hexdig+         { \p s -> L (pos p) $ IntTok (fst . head $ readHex (drop 2 s)) }
+    0 [xX] $hexdig+ [lL]    { \p s -> L (pos p) $ IntTok (fst . head $ readHex (init (drop 2 s))) }
 
     $digit+ \. $digit* @exponent? [dD]?           { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat $ '0':s) }
             \. $digit+ @exponent? [dD]?           { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat $ '0':s) }
