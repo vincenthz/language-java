@@ -27,7 +27,7 @@ $javaLetterOrDigit = [a-zA-Z0-9\_\$]
 
 @octEscape = [0123]? $octdig{1,2}
 @hexEscape = u $hexdig{4}
-@charEscape = \\ (@octEscape | @hexEscape | [btnfr\"\'])
+@charEscape = \\ (@octEscape | @hexEscape | [btnfr\"\'\\])
 
 @expsuffix = [\+\-]? $digit+
 @exponent = [eE] @expsuffix
