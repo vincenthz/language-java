@@ -11,6 +11,7 @@ module TokenGen where
 
 import Control.Monad (liftM2)
 import Data.Char (isControl, isAscii)
+import qualified Data.Set as DS
 import Test.QuickCheck
 import Text.Printf (printf)
 
@@ -54,13 +55,15 @@ identifier :: Gen Token
 identifier = fmap IdentTok identText
 
 identText :: Gen String
-identText = liftM2 (:) first rest
+identText = liftM2 (:) first rest `suchThat` (not . isKeyword)
   where first = javaLetter
         rest = sized (\s -> resize (min s 12) $ listOf javaLetterOrDigit)
         javaLetter = elements allJavaLetters
         javaLetterOrDigit = frequency [(length allJavaLetters, javaLetter), (10, digit)]
         digit = elements ['0'..'9']
-        allJavaLetters = "$_" ++ ['A'..'Z'] ++ ['a'..'z'] 
+        allJavaLetters = "$_" ++ ['A'..'Z'] ++ ['a'..'z']
+        isKeyword = flip DS.member allKeywordNames
+        allKeywordNames = DS.fromList $ map unlex allKeywords
 
 operator :: Gen Token
 operator = elements allOperators
