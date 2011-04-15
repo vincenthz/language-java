@@ -42,8 +42,8 @@ literal = oneof [
   fmap LongTok nonNegative,
   fmap DoubleTok nonNegative,
   fmap FloatTok nonNegative,
-  fmap CharTok arbitrary,
-  fmap StringTok arbitrary,
+  fmap CharTok javaChar,
+  fmap StringTok javaString,
   fmap BoolTok arbitrary,
   return NullTok
   ]
@@ -67,6 +67,16 @@ identText = liftM2 (:) first rest `suchThat` (not . isKeyword)
 
 operator :: Gen Token
 operator = elements allOperators
+
+-- An Alex lexer appears to support characters only in the range \x00
+-- to \xff, or at least that's what is implied by the definition of
+-- the character class '.' in the Alex documentation. We'll limit it
+-- to the ASCII range for now.
+javaChar :: Gen Char
+javaChar = elements $ takeWhile isAscii $ map toEnum [0..]
+
+javaString :: Gen String
+javaString = listOf javaChar
 
 -- | Gives the corresponding Java source text for a token.
 unlex :: Token -> String
