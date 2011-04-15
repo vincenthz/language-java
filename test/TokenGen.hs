@@ -10,7 +10,7 @@ original.  -}
 module TokenGen where
 
 import Control.Monad (liftM2)
-import Data.Char (isControl, isAscii)
+import Data.Char (isControl, isAscii, isPrint)
 import qualified Data.Set as DS
 import Test.QuickCheck
 import Text.Printf (printf)
@@ -209,7 +209,7 @@ unlexChar cc c =
       InString -> "'"
     '\\' -> "\\\\"
     _ ->
-      if isControl c || not (isAscii c)
+      if isControl c || not (isAscii c) || not (isPrint c)
       then asUnicodeEscape c
       else c:[]
     where asUnicodeEscape c =
