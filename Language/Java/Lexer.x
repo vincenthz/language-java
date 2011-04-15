@@ -110,10 +110,9 @@ tokens  :-
     true            { \p _ -> L (pos p) $ BoolTok True    }
     false           { \p _ -> L (pos p) $ BoolTok False   }
 
-    '(@charEscape)'                         { \p s -> L (pos p) $ CharTok (readCharTok s) }
-    '(~[\'])'                               { \p s -> L (pos p) $ CharTok (readCharTok s) }
+    ' (@charEscape | ~[\\\']) '               { \p s -> L (pos p) $ CharTok (readCharTok s) }
 
-    \" (@charEscape | ~[\"])* \"            { \p s -> L (pos p) $ StringTok (readStringTok s) }
+    \" (@charEscape | ~[\\\"])* \"            { \p s -> L (pos p) $ StringTok (readStringTok s) }
 
     null            {\p _ -> L (pos p) $ NullTok }
 

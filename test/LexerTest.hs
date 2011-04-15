@@ -17,6 +17,8 @@ lexerTests = [
     [IntTok 1]
   , LexerTest "0x17"
     [IntTok 23]
+  , LexerTest "\"\\\\\" \"\""
+    [StringTok "\\", StringTok ""]
   ]
 
 main :: IO ()
