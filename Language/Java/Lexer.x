@@ -177,15 +177,58 @@ readHexExp s = let (m, suf) = head $ readHex s
                 in m ** e
 
 readCharTok :: String -> Char
-readCharTok s = trace s $ read . convChar $ s
+readCharTok s = head . convChar . dropQuotes $ s
 readStringTok :: String -> String
-readStringTok = read . convChar
+readStringTok = convChar . dropQuotes
 
+dropQuotes :: String -> String
+dropQuotes s = take (length s - 2) (tail s)
+
+-- Converts a sequence of (unquoted) Java character literals, including
+-- escapes, into the sequence of corresponding Chars. The calls to
+-- 'lexicalError' double-check that this function is consistent with
+-- the lexer rules for character and string literals. This function
+-- could be expressed as another Alex lexer, but it's simple enough
+-- to implement by hand.
 convChar :: String -> String
-convChar ('\\':'u':s) = '\\':'x':convChar s
+convChar ('\\':'u':s@(d1:d2:d3:d4:s')) =
+  -- TODO: this is the wrong place for handling unicode escapes
+  -- according to the Java Language Specification. Unicode escapes can
+  -- appear anywhere in the source text, and are best processed
+  -- before lexing.
+  if all isHexDigit [d1,d2,d3,d4]
+  then toEnum (read ['0','x',d1,d2,d3,d4]):convChar s'
+  else lexicalError $ "bad unicode escape \"\\u" ++ take 4 s ++ "\""
+convChar ('\\':'u':s) =
+  lexicalError $ "bad unicode escape \"\\u" ++ take 4 s ++ "\""
+convChar ('\\':c:s) =
+  if isOctDigit c
+  then convOctal maxRemainingOctals
+  else (case c of
+          'b' -> '\b'
+          'f' -> '\f'
+          'n' -> '\n'
+          'r' -> '\r'
+          't' -> '\t'
+          '\'' -> '\''
+          '\\' -> '\\'
+          '"' -> '"'
+          _ -> badEscape):convChar s
+  where maxRemainingOctals =
+          if c <= '3' then 2 else 1
+        convOctal n =
+          let octals = takeWhile isOctDigit $ take n s
+              noctals = length octals
+              toChar = toEnum . fst . head . readOct
+          in toChar (c:octals):convChar (drop noctals s)
+        badEscape = lexicalError $ "bad escape \"\\" ++ c:"\""
+convChar ("\\") =
+  lexicalError "bad escape \"\\\""
 convChar (x:s) = x:convChar s
 convChar "" = ""
 
+lexicalError :: String -> a
+lexicalError = error . ("lexical error: " ++)
 
 data L a = L Pos a
   deriving (Show, Eq)
