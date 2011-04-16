@@ -3,6 +3,8 @@ module Main where
 import Test.HUnit
 import Language.Java.Lexer
 
+import qualified LexerQCTest as LQCT
+
 data LexerTest = LexerTest
                     String  -- given input
                     [Token] -- expected result
@@ -24,6 +26,7 @@ lexerTests = [
 main :: IO ()
 main = do
   _ <- runTestTT $ TestList $ map lexerTestToTest lexerTests
+  LQCT.run
   return ();
   where
     lexerTestToTest (LexerTest input expected) = TestCase $ do
