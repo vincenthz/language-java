@@ -16,8 +16,7 @@ $hexdig     = [0-9A-Fa-f]
 
 @lineterm = [\n\r] | \r\n
 
-@any = . | @lineterm
-@tradcomm = "/*" @any* "*/"
+@tradcomm = "/*" ( ~[\*] | \* (~[\/] | \n) | \n )* "*/"
 @linecomm = "//" .* @lineterm
 @comm = @tradcomm | @linecomm
 

@@ -21,6 +21,8 @@ import TokenGen
 run :: IO ()
 run = do
   quickCheck $ prop_unlexLex withInterveningSpaces
+  quickCheck $ prop_unlexLex withInterveningBlockComments
+  quickCheck $ prop_unlexLex withInterveningMultilineComments
 
 prop_unlexLex :: ([Token] -> String) -> [Token] -> Bool
 prop_unlexLex toText tokens =
@@ -29,3 +31,9 @@ prop_unlexLex toText tokens =
           
 withInterveningSpaces :: [Token] -> String
 withInterveningSpaces = intercalate " " . map unlex
+
+withInterveningBlockComments :: [Token] -> String
+withInterveningBlockComments = intercalate "\n/**/\n" . map unlex
+
+withInterveningMultilineComments :: [Token] -> String
+withInterveningMultilineComments = intercalate "\n/*\n *\n */\n" . map unlex
