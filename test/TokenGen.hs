@@ -190,6 +190,7 @@ unlex t = case t of
   Op_LShiftE      -> "<<="
   Op_RShiftE      -> ">>="
   Op_RRShiftE     -> ">>>="
+  Op_AtSign       -> "@"
   
 data CharContext = InChar | InString
 
@@ -320,5 +321,6 @@ allOperators = [
   Op_PercentE,
   Op_LShiftE,
   Op_RShiftE,
-  Op_RRShiftE
+  Op_RRShiftE,
+  Op_AtSign
   ]

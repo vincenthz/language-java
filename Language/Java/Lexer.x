@@ -164,6 +164,7 @@ tokens  :-
     "<<="           { \p _ -> L (pos p) $ Op_LShiftE      }
     ">>="           { \p _ -> L (pos p) $ Op_RShiftE      }
     ">>>="          { \p _ -> L (pos p) $ Op_RRShiftE     }
+    "@"             { \p _ -> L (pos p) $ Op_AtSign       }
 
 
 {
@@ -353,6 +354,7 @@ data Token
     | Op_LShiftE
     | Op_RShiftE
     | Op_RRShiftE
+    | Op_AtSign
   deriving (Show, Eq)
 
 lexer :: String -> [L Token]
