@@ -16,7 +16,8 @@ $hexdig     = [0-9A-Fa-f]
 
 @lineterm = [\n\r] | \r\n
 
-@tradcomm = "/*" ( ~[\*] | \* (~[\/] | \n) | \n )* "*/"
+-- TODO: this doesn't notice a comment that ends "**/"
+@tradcomm = "/*" ( ~[\*] | \*+ (~[\/\*] | \n) | \n )* \*+ "/"
 @linecomm = "//" .* @lineterm
 @comm = @tradcomm | @linecomm
 

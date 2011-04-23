@@ -18,6 +18,7 @@ lexerTests = concat [
   , integerTests 52
   , [ LexerTest "\"\\\\\" \"\""
       [StringTok "\\", StringTok ""] ]
+  , blockCommentTests
   ]
 
 -- | Generates integer lexing tests using decimal, octal, and
@@ -36,6 +37,18 @@ integerTests expectedValue =
         intToken   = IntTok  expectedValue
         longToken  = LongTok expectedValue
   
+blockCommentTests :: [LexerTest]
+blockCommentTests =
+  map mkTest [ "",
+               "*",
+               "**",
+               "***",
+               "** / ***",
+               "*\n/ ***\n /**"]
+  where mkTest commentBody =
+          LexerTest (comment ++ "class" ++ comment) [KW_Class]
+            where comment = "/*" ++ commentBody ++ "*/"
+                  
 main :: IO ()
 main = do
   _ <- runTestTT $ TestList $ map lexerTestToTest lexerTests
