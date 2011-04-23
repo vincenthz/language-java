@@ -91,8 +91,8 @@ tokens  :-
 
     0               { \p _ -> L (pos p) $ IntTok 0        }
     0 [lL]          { \p _ -> L (pos p) $ LongTok 0       }
-    0 $octdig+      { \p s -> L (pos p) $ IntTok (fst . head $ readOct s) }
-    0 $octdig+ [lL] { \p s -> L (pos p) $ LongTok (fst . head $ readOct (init s)) }
+    0 $digit+       { \p s -> L (pos p) $ IntTok (pickyReadOct s) }
+    0 $digit+ [lL]  { \p s -> L (pos p) $ LongTok (pickyReadOct (init s)) }
     $nonzero $digit*        { \p s -> L (pos p) $ IntTok (read s) }
     $nonzero $digit* [lL]   { \p s -> L (pos p) $ LongTok (read (init s)) }
     0 [xX] $hexdig+         { \p s -> L (pos p) $ IntTok (fst . head $ readHex (drop 2 s)) }
@@ -102,7 +102,8 @@ tokens  :-
             \. $digit+ @exponent? [dD]?           { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat $ '0':s) }
     $digit+ \. $digit* @exponent? [fF]            { \p s -> L (pos p) $ FloatTok  (fst . head $ readFloat $ '0':s) }
             \. $digit+ @exponent? [fF]            { \p s -> L (pos p) $ FloatTok  (fst . head $ readFloat $ '0':s) }
-    $digit+ @exponent? [dD]?                      { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat s) }
+    $digit+ @exponent                             { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat s) }
+    $digit+ @exponent? [dD]                       { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat s) }
     $digit+ @exponent? [fF]                       { \p s -> L (pos p) $ FloatTok  (fst . head $ readFloat s) }
     0 [xX] $hexdig* \.? $hexdig* @pexponent [dD]? { \p s -> L (pos p) $ DoubleTok (readHexExp (drop 2 s)) }
     0 [xX] $hexdig* \.? $hexdig* @pexponent [fF]  { \p s -> L (pos p) $ FloatTok  (readHexExp (drop 2 s)) }
@@ -169,6 +170,13 @@ tokens  :-
 
 
 {
+
+pickyReadOct :: String -> Integer
+pickyReadOct s =
+  if not $ null rem
+  then lexicalError $ "Non-octal digit '" ++ take 1 rem ++ "' in \"" ++ s ++ "\"."
+  else n
+    where (n,rem) = head $ readOct s
 
 readHexExp :: Floating a => String -> a
 readHexExp s = let (m, suf) = head $ readHex s
