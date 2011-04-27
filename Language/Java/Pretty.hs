@@ -171,14 +171,12 @@ instance Pretty BlockStmt where
 instance Pretty Stmt where
   pretty (StmtBlock block) = pretty block
   pretty (IfThen c th) =
-    hsep [text "if", parens (pretty c) 
-          ,text "then", pretty th
+    hsep [text "if", parens (pretty c) , pretty th
          ]
 
   pretty (IfThenElse c th el) =
     hsep [text "if", parens (pretty c)
-          , text "then", pretty th
-          , text "else", pretty el
+          , pretty th , text "else", pretty el
          ]
       
   pretty (While c stmt) =
