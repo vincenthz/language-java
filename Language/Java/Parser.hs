@@ -342,7 +342,7 @@ varDeclId :: P VarDeclId
 varDeclId = do
     id  <- ident
     abs <- list arrBrackets
-    return $ foldr (\_ f -> VarDeclArray . f) VarId abs id
+    return $ foldl (\f _ -> VarDeclArray . f) VarId abs id
 
 arrBrackets :: P ()
 arrBrackets = brackets $ return ()
@@ -587,7 +587,7 @@ postIncDec :: P Exp
 postIncDec = do
     e <- postfixExpNES
     ops <- list1 postfixOp
-    return $ foldr (\s a -> s a) e ops
+    return $ foldl (\a s -> s a) e ops
 
 assignment :: P Exp
 assignment = do
@@ -613,7 +613,7 @@ condExp :: P Exp
 condExp = do
     ie <- infixExp
     ces <- list condExpSuffix
-    return $ foldr (\s a -> s a) ie ces
+    return $ foldl (\a s -> s a) ie ces
 
 condExpSuffix :: P (Exp -> Exp)
 condExpSuffix = do
@@ -627,7 +627,7 @@ infixExp :: P Exp
 infixExp = do
     ue <- unaryExp
     ies <- list infixExpSuffix
-    return $ foldr (\s a -> s a) ue ies
+    return $ foldl (\a s -> s a) ue ies
 
 infixExpSuffix :: P (Exp -> Exp)
 infixExpSuffix =
@@ -659,11 +659,11 @@ postfixExp :: P Exp
 postfixExp = do 
     pe <- postfixExpNES
     ops <- list postfixOp
-    return $ foldr (\s a -> s a) pe ops
+    return $ foldl (\a s -> s a) pe ops
     
 
 primary :: P Exp
-primary = startSuff primaryNPS primarySuffix
+primary = primaryNPS |>> primarySuffix
 
 primaryNPS :: P Exp
 primaryNPS = try arrayCreation <|> primaryNoNewArrayNPS
@@ -718,7 +718,7 @@ instanceCreation :: P Exp
 instanceCreation = try instanceCreationNPS <|> do
     p <- primaryNPS
     ss <- list primarySuffix
-    let icp = foldr (\s a -> s a) p ss
+    let icp = foldl (\a s -> s a) p ss
     case icp of
      QualInstanceCreation {} -> return icp
      _ -> fail ""
@@ -760,7 +760,7 @@ fieldAccess :: P FieldAccess
 fieldAccess = try fieldAccessNPS <|> do
     p <- primaryNPS
     ss <- list primarySuffix
-    let fap = foldr (\s a -> s a) p ss
+    let fap = foldl (\a s -> s a) p ss
     case fap of
      FieldAccess fa -> return fa
      _ -> fail ""
@@ -821,7 +821,7 @@ methodInvocationExp :: P Exp
 methodInvocationExp = try (MethodInv <$> methodInvocationNPS) <|> do
     p <- primaryNPS
     ss <- list primarySuffix
-    let mip = foldr (\s a -> s a) p ss
+    let mip = foldl (\a s -> s a) p ss
     case mip of
      MethodInv _ -> return mip
      _ -> fail ""
@@ -872,7 +872,7 @@ arrayAccessSuffix = do
 arrayAccess = try arrayAccessNPS <|> do
     p <- primaryNoNewArrayNPS
     ss <- list primarySuffix
-    let aap = foldr (\s a -> s a) p ss
+    let aap = foldl (\a s -> s a) p ss
     case aap of
      ArrayAccess ain -> return ain
      _ -> fail ""
@@ -988,11 +988,11 @@ refType :: P RefType
 refType =
     (do pt <- primType
         (_:bs) <- list1 arrBrackets
-        return $ foldr (\_ f -> ArrayType . RefType. f) 
+        return $ foldl (\f _ -> ArrayType . RefType . f) 
                         (ArrayType . PrimType) bs pt) <|>
     (do ct <- classType
         bs <- list arrBrackets
-        return $ foldr (\_ f -> ArrayType . RefType . f)
+        return $ foldl (\f _ -> ArrayType . RefType . f)
                             ClassRefType bs ct) <?> "refType"
 
 nonArrayType :: P Type
@@ -1090,11 +1090,13 @@ seplist1 p sep =
                 return (a:as)) 
         <|> return [a]
 
-startSuff :: P a -> P (a -> a) -> P a
+startSuff, (|>>) :: P a -> P (a -> a) -> P a
 startSuff start suffix = do
     x <- start
     ss <- list suffix
-    return $ foldr (\s a -> s a) x ss
+    return $ foldl (\a s -> s a) x ss
+
+(|>>) = startSuff
 
 ------------------------------------------------------------
 
