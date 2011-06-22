@@ -34,8 +34,8 @@ module Language.Java.Parser (
 import Language.Java.Lexer ( L(..), Token(..), lexer)
 import Language.Java.Syntax
 
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Pos
+import Text.Parsec hiding ( Empty )
+import Text.Parsec.Pos
 
 import Prelude hiding ( exp, catch, (>>), (>>=) )
 import qualified Prelude as P ( (>>), (>>=) ) 
@@ -43,7 +43,7 @@ import Data.Maybe ( isJust, catMaybes )
 import Control.Monad ( ap )
 import Control.Applicative ( (<$>) )
 
-type P = GenParser (L Token) ()
+type P = Parsec [L Token] ()
 
 -- A trick to allow >> and >>=, normally infixr 1, to be
 -- used inside branches of <|>, which is declared as infixl 1.
