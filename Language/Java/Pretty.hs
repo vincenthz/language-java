@@ -260,6 +260,8 @@ instance Pretty ForInit where
   pretty (ForLocalVars mods t vds) =
     hsep $ map pretty mods ++
             pretty t: punctuate comma (map pretty vds)
+  pretty (ForInitExps es) =
+    hsep $ punctuate comma (map pretty es)
 
 
 -----------------------------------------------------------------------
