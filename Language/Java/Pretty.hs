@@ -171,25 +171,19 @@ instance Pretty BlockStmt where
 instance Pretty Stmt where
   pretty (StmtBlock block) = pretty block
   pretty (IfThen c th) =
-    hsep [text "if", parens (pretty c) , pretty th
-         ]
+    text "if" <+> parens (pretty c) $+$ prettyNestedStmt th
 
   pretty (IfThenElse c th el) =
-    hsep [text "if", parens (pretty c)
-          , pretty th , text "else", pretty el
-         ]
+    text "if" <+> parens (pretty c) $+$ prettyNestedStmt th $+$ text "else" $+$ prettyNestedStmt el
       
   pretty (While c stmt) =
-    hsep [text "while", parens (pretty c), pretty stmt]
+    text "while" <+> parens (pretty c) $+$ prettyNestedStmt stmt
   
   pretty (BasicFor mInit mE mUp stmt) =
-    hsep [text "for"
-          , parens $ hsep [maybePP mInit, semi
+    text "for" <+> (parens $ hsep [maybePP mInit, semi
                            , maybePP mE, semi
                            , maybe empty (hsep . punctuate comma . map pretty) mUp
-                          ]
-          , pretty stmt
-         ]
+                          ]) $+$ prettyNestedStmt stmt
 
   pretty (EnhancedFor mods t ident e stmt) =
     hsep [text "for"
@@ -216,8 +210,7 @@ instance Pretty Stmt where
       $$ braceBlock (map pretty sBlocks)
 
   pretty (Do stmt e) =
-    hsep [text "do", pretty stmt, text "while"
-          , parens (pretty e)] <> semi
+    text "do" $+$ pretty stmt <+> text "while" <+> parens (pretty e) <> semi
   
   pretty (Break mIdent) =
     text "break" <+> maybePP mIdent <> semi
@@ -511,6 +504,9 @@ instance Pretty Ident where
 
 -----------------------------------------------------------------------
 -- Help functionality
+prettyNestedStmt :: Stmt -> Doc
+prettyNestedStmt p@(StmtBlock b) = pretty p
+prettyNestedStmt p = nest 2 (pretty p)
 
 maybePP :: Pretty a => Maybe a -> Doc
 maybePP = maybe empty pretty
