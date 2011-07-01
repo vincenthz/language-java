@@ -9,6 +9,9 @@ import Language.Java.Syntax
 prettyPrint :: Pretty a => a -> String
 prettyPrint = show . pretty
 
+parenPrec :: Int -> Int -> Doc -> Doc
+parenPrec prec prec2 t = if prec <= prec2 then t else parens t
+
 class Pretty a where
   pretty :: a -> Doc
   pretty = prettyPrec 0
@@ -27,7 +30,7 @@ instance Pretty PackageDecl where
   pretty (PackageDecl name) = text "package" <+> pretty name <> semi
 
 instance Pretty ImportDecl where
-  pretty (ImportDecl st name wc) = 
+  pretty (ImportDecl st name wc) =
     text "import" <+> opt st (text "static")
                   <+> pretty name <> opt wc (text ".*")
                   <> semi
@@ -40,7 +43,7 @@ instance Pretty TypeDecl where
   pretty (InterfaceTypeDecl id) = pretty id
 
 instance Pretty ClassDecl where
-  pretty (EnumDecl mods ident impls body) = 
+  pretty (EnumDecl mods ident impls body) =
     hsep [hsep (map pretty mods)
           , text "enum"
           , pretty ident 
@@ -57,7 +60,7 @@ instance Pretty ClassDecl where
          ] $$ pretty body
 
 instance Pretty ClassBody where
-  pretty (ClassBody ds) = 
+  pretty (ClassBody ds) =
     braceBlock (map pretty ds)
     
 instance Pretty EnumBody where
@@ -88,7 +91,7 @@ instance Pretty InterfaceBody where
 
 instance Pretty Decl where
   pretty (MemberDecl md) = pretty md
-  pretty (InitDecl b bl) = 
+  pretty (InitDecl b bl) =
     opt b (text "static") <+> pretty bl
 
 instance Pretty MemberDecl where
@@ -245,7 +248,7 @@ instance Pretty SwitchBlock where
     vcat (pretty lbl : map (nest 2 . pretty) stmts)
 
 instance Pretty SwitchLabel where
-  pretty (SwitchCase e) = 
+  pretty (SwitchCase e) =
     text "case" <+> pretty e <> colon
   pretty Default = text "default:"
 
@@ -261,76 +264,81 @@ instance Pretty ForInit where
 -- Expressions
 
 instance Pretty Exp where
-  pretty (Lit l) = pretty l
+  prettyPrec _ (Lit l) = pretty l
   
-  pretty (ClassLit mT) = 
+  prettyPrec _ (ClassLit mT) =
     ppResultType mT <> text ".class"
 
-  pretty This = text "this"
+  prettyPrec _ This = text "this"
   
-  pretty (ThisClass name) = 
+  prettyPrec _ (ThisClass name) =
     pretty name <> text ".this"
     
-  pretty (Paren e) = parens (pretty e)
+  prettyPrec _ (Paren e) = parens (pretty e)
   
-  pretty (InstanceCreation tArgs ct args mBody) =
+  prettyPrec _ (InstanceCreation tArgs ct args mBody) =
     hsep [text "new" 
           , ppTypeParams tArgs 
           , pretty ct <> ppArgs args
          ] $$ maybePP mBody
   
-  pretty (QualInstanceCreation e tArgs ident args mBody) =
+  prettyPrec _ (QualInstanceCreation e tArgs ident args mBody) =
     hsep [pretty e <> char '.' <> text "new"
           , ppTypeParams tArgs
           , pretty ident <> ppArgs args
          ] $$ maybePP mBody
 
-  pretty (ArrayCreate t es k) =
+  prettyPrec _ (ArrayCreate t es k) =
     text "new" <+> 
       hcat (pretty t : map (brackets . pretty) es 
                 ++ replicate k (text "[]"))
   
-  pretty (ArrayCreateInit t k init) =
+  prettyPrec _ (ArrayCreateInit t k init) =
     text "new" 
       <+> hcat (pretty t : replicate k (text "[]")) 
       <+> pretty init
 
-  pretty (FieldAccess fa) = pretty fa
+  prettyPrec p (FieldAccess fa) = parenPrec p 22 $ prettyPrec 22 fa
   
-  pretty (MethodInv mi) = pretty mi
+  prettyPrec p (MethodInv mi) = parenPrec p 22 $ prettyPrec 22 mi
   
-  pretty (ArrayAccess ain) = pretty ain
+  prettyPrec p (ArrayAccess ain) = parenPrec p 22 $ prettyPrec 22 ain
 
-  pretty (ExpName name) = pretty name
+  prettyPrec _ (ExpName name) = pretty name
   
-  pretty (PostIncrement e) = pretty e <> text "++"
-  
-  pretty (PostDecrement e) = pretty e <> text "--"
+  prettyPrec p (PostIncrement e) = parenPrec p 21 $ prettyPrec 21 e <> text "++"
 
-  pretty (PreIncrement e)  = text "++" <> pretty e
-  
-  pretty (PreDecrement e)  = text "--" <> pretty e
+  prettyPrec p (PostDecrement e) = parenPrec p 21 $ prettyPrec 21 e <> text "--"
 
-  pretty (PrePlus e) = char '+' <> pretty e
+  prettyPrec p (PreIncrement e)  = parenPrec p 21 $ text "++" <> prettyPrec 21 e
   
-  pretty (PreMinus e) = char '-' <> pretty e
-  
-  pretty (PreBitCompl e) = char '~' <> pretty e
-  
-  pretty (PreNot e) = char '!' <> pretty e
+  prettyPrec p (PreDecrement e)  = parenPrec p 21 $ text "--" <> prettyPrec 21 e
 
-  pretty (Cast t e) = parens (pretty t) <+> pretty e
+  prettyPrec p (PrePlus e) = parenPrec p 21 $ char '+' <> prettyPrec 21 e
   
-  pretty (BinOp e1 op e2) =
-    hsep [pretty e1, pretty op, pretty e2]
+  prettyPrec p (PreMinus e) = parenPrec p 21 $ char '-' <> prettyPrec 21 e
   
-  pretty (InstanceOf e rt) =
-    hsep [pretty e, text "instanceof", pretty rt]
+  prettyPrec p (PreBitCompl e) = parenPrec p 21 $ char '~' <> prettyPrec 21 e 
+
+  prettyPrec p (PreNot e) = parenPrec p 21 $ char '!' <> prettyPrec 21 e
+
+  prettyPrec p (Cast t e) = parenPrec p 21 $ parens (pretty t) <+> prettyPrec 21 e
+  
+  prettyPrec p (BinOp e1 op e2) =
+    let prec = opPrec op in
+    parenPrec p prec $ prettyPrec prec e1
+                     <+> pretty op <+> prettyPrec (prec+1) e2
+
+  prettyPrec p (InstanceOf e rt) =
+    let cp = opPrec LThan in
+    parenPrec p cp $ prettyPrec cp e
+                   <+> text "instanceof" <+> prettyPrec cp rt
     
-  pretty (Cond c th el) =
-    hsep [pretty c, char '?', pretty th, colon, pretty el]
+  prettyPrec p (Cond c th el) =
+    parenPrec p 10 $ prettyPrec 10 c <+> char '?'
+                   <+> pretty th <+> colon <+> prettyPrec 10 el
 
-  pretty (Assign lhs aop e) =
+  prettyPrec _ (Assign lhs aop e) =
     hsep [pretty lhs, pretty aop, pretty e]
 
 
@@ -495,7 +503,7 @@ ppResultType (Just a) = pretty a
 -- Names and identifiers
 
 instance Pretty Name where
-  pretty (Name is) = 
+  pretty (Name is) =
     hcat (punctuate (char '.') $ map pretty is)
 
 instance Pretty Ident where
@@ -518,3 +526,23 @@ braceBlock :: [Doc] -> Doc
 braceBlock xs = char '{'
     $+$ nest 2 (vcat xs)
     $+$ char '}'
+
+opPrec Mult    = 20
+opPrec Div     = 20
+opPrec Rem     = 20
+opPrec Add     = 19
+opPrec Sub     = 19
+opPrec LShift  = 18
+opPrec RShift  = 18
+opPrec RRShift = 18
+opPrec LThan   = 17
+opPrec GThan   = 17
+opPrec LThanE  = 17
+opPrec GThanE  = 17
+opPrec Equal   = 16
+opPrec NotEq   = 16
+opPrec And     = 15
+opPrec Xor     = 14
+opPrec Or      = 13
+opPrec CAnd    = 12
+opPrec COr     = 11
