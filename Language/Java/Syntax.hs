@@ -381,10 +381,6 @@ data Exp
     | This
     -- | Any lexically enclosing instance can be referred to by explicitly qualifying the keyword this.
     | ThisClass Name
-    -- | A parenthesized expression is a primary expression whose type is the type of the contained expression 
-    --   and whose value at run time is the value of the contained expression. If the contained expression 
-    --   denotes a variable then the parenthesized expression also denotes that variable.
-    | Paren Exp
     -- | A class instance creation expression is used to create new objects that are instances of classes.
     -- | The first argument is a list of non-wildcard type arguments to a generic constructor.
     --   What follows is the type to be instantiated, the list of arguments passed to the constructor, and

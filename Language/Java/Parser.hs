@@ -674,7 +674,7 @@ primaryNoNewArrayNPS :: P Exp
 primaryNoNewArrayNPS = 
     Lit <$> literal <|>
     const This <$> tok KW_This <|>
-    Paren <$> parens exp <|> 
+    parens exp <|> 
     -- TODO: These two following should probably be merged more
     (try $ do 
         rt <- resultType 
