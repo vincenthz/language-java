@@ -723,22 +723,6 @@ instanceCreation = try instanceCreationNPS <|> do
      QualInstanceCreation {} -> return icp
      _ -> fail ""
 
-{- 
-instanceCreation = 
-    (do tok KW_New
-        tas <- lopt typeArgs
-        ct  <- classType
-        as  <- args
-        mcb <- opt classBody
-        return $ InstanceCreation tas ct as mcb) <|>
-    (do p   <- primary
-        period >> tok KW_New
-        tas <- lopt typeArgs
-        i   <- ident
-        as  <- args
-        mcb <- opt classBody
-        return $ QualInstanceCreation p tas i as mcb) 
--}
 
 fieldAccessNPS :: P FieldAccess
 fieldAccessNPS =
@@ -764,31 +748,6 @@ fieldAccess = try fieldAccessNPS <|> do
     case fap of
      FieldAccess fa -> return fa
      _ -> fail ""
-
-{-
-fieldAccess :: P FieldAccess
-fieldAccess = try fieldAccessNPS <|> do
-    p <- primary
-    fs <- fieldAccessSuffix 
-    return (fs p)
--}
-
-{-
-fieldAccess :: P FieldAccess
-fieldAccess =
-    (do tok KW_Super >> period
-        i <- ident
-        return $ SuperFieldAccess i) <|>
-    (try $ do
-        n <- name
-        period >> tok KW_Super >> period
-        i <- ident
-        return $ ClassFieldAccess n i) <|>
-    (do p <- primary
-        period
-        i <- ident
-        return $ PrimaryFieldAccess p i) 
--}
 
 methodInvocationNPS :: P MethodInvocation
 methodInvocationNPS =
@@ -826,32 +785,6 @@ methodInvocationExp = try (MethodInv <$> methodInvocationNPS) <|> do
      MethodInv _ -> return mip
      _ -> fail ""
 
-{-
-methodInvocation :: P MethodInvocation
-methodInvocation =
-    (do tok KW_Super >> period
-        rts <- lopt refTypeArgs
-        i   <- ident
-        as  <- args
-        return $ SuperMethodCall rts i as) <|>
-    (do p <- primary
-        period
-        rts <- lopt refTypeArgs
-        i   <- ident
-        as  <- args
-        return $ PrimaryMethodCall p rts i as) <|>
-    (do n <- name
-        f <- (do as <- args
-                 return $ \n -> MethodCall n as) <|>
-             (period >> do
-                msp <- opt (tok KW_Super >> period)
-                rts <- lopt refTypeArgs
-                i   <- ident
-                as  <- args
-                let mc = maybe TypeMethodCall (const ClassMethodCall) msp
-                return $ \n -> mc n rts i as)
-        return $ f n)
--}
 
 args :: P [Argument]
 args = parens $ seplist exp comma
@@ -876,17 +809,6 @@ arrayAccess = try arrayAccessNPS <|> do
     case aap of
      ArrayAccess ain -> return ain
      _ -> fail ""
-
-{-
-arrayAccess :: P (Exp, Exp)
-arrayAccess = do
-    ref <- arrayRef
-    e   <- brackets exp
-    return (ref, e)
-
-arrayRef :: P Exp
-arrayRef = ExpName <$> name <|> primaryNoNewArray
--}
 
 arrayCreation :: P Exp
 arrayCreation = do
@@ -1078,11 +1000,9 @@ list1 :: P a -> P [a]
 list1 = many1
 
 seplist :: P a -> P sep -> P [a]
---seplist = sepBy
 seplist p sep = option [] $ seplist1 p sep
 
 seplist1 :: P a -> P sep -> P [a]
---seplist1 = sepBy1
 seplist1 p sep = 
     p >>= \a -> 
         try (do sep
