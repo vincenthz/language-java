@@ -1,5 +1,6 @@
 module Language.Java.Parser (
-    parser, 
+    parser,
+    parseCompilationUnit,
     
     compilationUnit, packageDecl, importDecl, typeDecl,
     

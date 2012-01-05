@@ -30,7 +30,7 @@ processDir mfp root = do
 
  tree <- enumTree root
  res <-  mapM (processFile mh) $ filter ((==".java") .
-SF.takeExtension) tree
+                                         SF.takeExtension) tree
  let num = length res
  let suc = length (filter id res)
  putStrLn $ printf "%d / %d" suc num
