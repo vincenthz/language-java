@@ -44,3 +44,5 @@ Library
                         Language.Java.Pretty
   
   Other-modules:	
+  GHC-options:          -O -W
+  GHC-prof-options:     -auto-all -caf-all
