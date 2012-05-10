@@ -179,7 +179,7 @@ pickyReadOct s =
   else n
     where (n,rem) = head $ readOct s
 
-readHexExp :: Floating a => String -> a
+readHexExp :: (Floating a, Eq a) => String -> a
 readHexExp s = let (m, suf) = head $ readHex s
                    (e, _) = case suf of
                              p:s | toLower p == 'p' -> head $ readHex s
