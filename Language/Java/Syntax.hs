@@ -160,6 +160,25 @@ data Modifier
     | Transient
     | Volatile
     | Native
+    | Annotation Annotation
+  DERIVE
+
+-- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
+data Annotation = NormalAnnotation        { annName :: Name -- Not type because not type generics not allowed
+                                          , annKV   :: [(Ident, ElementValue)] }
+                | SingleElementAnnotation { annName :: Name
+                                          , annValue:: ElementValue }
+                | MarkerAnnotation        { annName :: Name }
+  DERIVE
+
+desugarAnnotation (MarkerAnnotation n)          = (n, [])
+desugarAnnotation (SingleElementAnnotation n e) = (n, [(Ident "value", e)])
+desugarAnnotation (NormalAnnotation n kv)       = (n, kv)
+desugarAnnotation' = uncurry NormalAnnotation . desugarAnnotation
+
+-- | Annotations may contain  annotations or (loosely) expressions
+data ElementValue = EVVal VarInit
+                  | EVAnn Annotation
   DERIVE
 
 -----------------------------------------------------------------------
