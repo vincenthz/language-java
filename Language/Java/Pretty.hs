@@ -160,7 +160,20 @@ instance Pretty ExplConstrInv where
       ppTypeParams rts <+> text "super" <> ppArgs args <> semi
 
 instance Pretty Modifier where
+  pretty (Annotation ann) = pretty ann $+$ nest (-1) ( text "")
   pretty mod = text . map toLower $ show mod
+
+instance Pretty Annotation where
+  pretty x = text "@" <> pretty (annName x) <> case x of
+         MarkerAnnotation {} -> text ""
+         SingleElementAnnotation {} -> text "(" <> pretty (annValue x) <> text ")"  
+         NormalAnnotation {} -> text "(" <> ppEVList (annKV x) <> text ")"
+
+ppEVList = hsep . punctuate comma . map (\(k,v) -> pretty k <+> text "=" <+> pretty v)
+
+instance Pretty ElementValue where
+  pretty (EVVal vi) = pretty vi
+  pretty (EVAnn ann) = pretty ann
 
 -----------------------------------------------------------------------
 -- Statements
