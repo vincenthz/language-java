@@ -3,7 +3,7 @@ Version:                0.2.1
 License:                BSD3
 License-File:           LICENSE
 Author:                 Niklas Broberg
-Maintainer:             Niklas Broberg <niklas.broberg@chalmers.se>
+Maintainer:             Vincent Hanquez <vincent@snarc.org>
 Category:               Language
 Synopsis:               Manipulating Java source: abstract syntax, lexer, parser, and pretty-printer
 Description:            Java source manipulation.
