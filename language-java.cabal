@@ -7,9 +7,8 @@ Maintainer:             Vincent Hanquez <vincent@snarc.org>
 Category:               Language
 Synopsis:               Manipulating Java source: abstract syntax, lexer, parser, and pretty-printer
 Description:            Java source manipulation.
-Homepage:               http://code.haskell.org/language-java
+Homepage:               http://github.com/vincenthz/language-java
 Stability:              Experimental
-Tested-with:            GHC==6.10.2
 Build-Type:             Simple
 Cabal-Version:          >= 1.6
 
@@ -22,8 +21,8 @@ Extra-Source-Files:
 			Language/Java/Lexer.x
 
 source-repository head
-  type:                 darcs
-  location:             http://code.haskell.org/language-java/
+  type:                 git
+  location:             git://github.com/vincenthz/language-java
 
 Flag base4
 
