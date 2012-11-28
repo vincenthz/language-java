@@ -1,34 +1,34 @@
 module Language.Java.Parser (
-    parser, 
-    
+    parser,
+
     compilationUnit, packageDecl, importDecl, typeDecl,
-    
+
     classDecl, interfaceDecl,
-    
+
     memberDecl, fieldDecl, methodDecl, constrDecl,
     interfaceMemberDecl, absMethodDecl,
-    
+
     formalParams, formalParam,
-    
+
     modifier,
-    
+
     varDecls, varDecl,
-    
+
     block, blockStmt, stmt,
-    
+
     stmtExp, exp, primary, literal,
-    
+
     ttype, primType, refType, classType, resultType,
-    
+
     typeParams, typeParam,
-    
+
     name, ident,
-    
-    
+
+
     empty, list, list1, seplist, seplist1, opt, bopt, lopt,
-    
+
     comma, semiColon, period, colon
-    
+
     ) where
 
 import Language.Java.Lexer ( L(..), Token(..), lexer)
@@ -39,7 +39,7 @@ import Text.Parsec hiding ( Empty )
 import Text.Parsec.Pos
 
 import Prelude hiding ( exp, catch, (>>), (>>=) )
-import qualified Prelude as P ( (>>), (>>=) ) 
+import qualified Prelude as P ( (>>), (>>=) )
 import Data.Maybe ( isJust, catMaybes )
 import Control.Monad ( ap )
 import Control.Applicative ( (<$>), (<$), (<*) )
@@ -53,7 +53,7 @@ type P = Parsec [L Token] ()
 (>>) = (P.>>)
 (>>=) = (P.>>=)
 infixr 2 >>, >>=
--- Note also when reading that <$> is infixl 4 and thus has 
+-- Note also when reading that <$> is infixl 4 and thus has
 -- lower precedence than all the others (>>, >>=, and <|>).
 
 -- Since I cba to find the instance Monad m => Applicative m declaration.
@@ -65,7 +65,7 @@ infixl 4 <*>
 -- Top-level parsing
 
 parseCompilationUnit :: String -> Either ParseError CompilationUnit
-parseCompilationUnit inp = 
+parseCompilationUnit inp =
     runParser compilationUnit () "" (lexer inp)
 
 parser p = runParser p () "" . lexer
@@ -89,7 +89,7 @@ packageDecl = do
     n <- name
     semiColon
     return $ PackageDecl n
-    
+
 importDecl :: P ImportDecl
 importDecl = do
     tok KW_Import
@@ -100,7 +100,7 @@ importDecl = do
     return $ ImportDecl st n ds
 
 typeDecl :: P (Maybe TypeDecl)
-typeDecl = Just <$> classOrInterfaceDecl <|> 
+typeDecl = Just <$> classOrInterfaceDecl <|>
             const Nothing <$> semiColon
 
 ----------------------------------------------------------------------------
@@ -153,7 +153,7 @@ enumBody = braces $ do
     optional comma
     eds <- lopt enumBodyDecls
     return $ EnumBody ecs eds
-    
+
 enumConst :: P EnumConstant
 enumConst = do
     id  <- ident
@@ -179,31 +179,31 @@ interfaceDecl = do
     return $ \ms -> InterfaceDecl ms id tps exs bod
 
 interfaceBody :: P InterfaceBody
-interfaceBody = InterfaceBody . catMaybes <$> 
+interfaceBody = InterfaceBody . catMaybes <$>
     braces (list interfaceBodyDecl)
 
 -- Declarations
 
 classBodyDecl :: P Decl
-classBodyDecl = 
-    (try $ do 
+classBodyDecl =
+    (try $ do
         mst <- bopt (tok KW_Static)
         blk <- block
-        return $ InitDecl mst blk) <|> 
+        return $ InitDecl mst blk) <|>
     (do ms  <- list modifier
         dec <- memberDecl
         return $ MemberDecl (dec ms))
-    
+
 memberDecl :: P (Mod MemberDecl)
-memberDecl = 
-    (try $ do 
+memberDecl =
+    (try $ do
         cd  <- classDecl
         return $ \ms -> MemberClassDecl (cd ms)) <|>
-    (try $ do 
+    (try $ do
         id  <- interfaceDecl
-        return $ \ms -> MemberInterfaceDecl (id ms)) <|> 
-    try fieldDecl <|> 
-    try methodDecl <|> 
+        return $ \ms -> MemberInterfaceDecl (id ms)) <|>
+    try fieldDecl <|>
+    try methodDecl <|>
     constrDecl
 
 fieldDecl :: P (Mod MemberDecl)
@@ -223,7 +223,7 @@ methodDecl = do
     return $ \ms -> MethodDecl ms tps rt id fps thr bod
 
 methodBody :: P MethodBody
-methodBody = MethodBody <$> 
+methodBody = MethodBody <$>
     (const Nothing <$> semiColon <|> Just <$> block)
 
 constrDecl :: P (Mod MemberDecl)
@@ -240,19 +240,19 @@ constrBody = braces $ do
     mec <- opt (try explConstrInv)
     bss <- list blockStmt
     return $ ConstructorBody mec bss
-    
+
 explConstrInv :: P ExplConstrInv
 explConstrInv = endSemi $
     (try $ do
         tas <- lopt refTypeArgs
         tok KW_This
         as  <- args
-        return $ ThisInvoke tas as) <|> 
+        return $ ThisInvoke tas as) <|>
     (try $ do
         tas <- lopt refTypeArgs
         tok KW_Super
         as  <- args
-        return $ SuperInvoke tas as) <|> 
+        return $ SuperInvoke tas as) <|>
     (do pri <- primary
         period
         tas <- lopt refTypeArgs
@@ -263,18 +263,18 @@ explConstrInv = endSemi $
 -- TODO: This should be parsed like class bodies, and post-checked.
 --       That would give far better error messages.
 interfaceBodyDecl :: P (Maybe MemberDecl)
-interfaceBodyDecl = semiColon >> return Nothing <|> 
+interfaceBodyDecl = semiColon >> return Nothing <|>
     do ms  <- list modifier
        imd <- interfaceMemberDecl
        return $ Just (imd ms)
-    
+
 interfaceMemberDecl :: P (Mod MemberDecl)
 interfaceMemberDecl =
     (do cd  <- classDecl
         return $ \ms -> MemberClassDecl (cd ms)) <|>
     (do id  <- interfaceDecl
-        return $ \ms -> MemberInterfaceDecl (id ms)) <|> 
-    try fieldDecl <|> 
+        return $ \ms -> MemberInterfaceDecl (id ms)) <|>
+    try fieldDecl <|>
     absMethodDecl
 
 absMethodDecl :: P (Mod MemberDecl)
@@ -317,19 +317,19 @@ ellipsis = period >> period >> period
 -- Modifiers
 
 modifier :: P Modifier
-modifier = 
-        tok KW_Public      >> return Public    
-    <|> tok KW_Protected   >> return Protected 
-    <|> tok KW_Private     >> return Private   
-    <|> tok KW_Abstract    >> return Abstract  
-    <|> tok KW_Static      >> return Static    
-    <|> tok KW_Strictfp    >> return StrictFP  
-    <|> tok KW_Final       >> return Final     
-    <|> tok KW_Native      >> return Native    
-    <|> tok KW_Transient   >> return Transient 
-    <|> tok KW_Volatile    >> return Volatile  
+modifier =
+        tok KW_Public      >> return Public
+    <|> tok KW_Protected   >> return Protected
+    <|> tok KW_Private     >> return Private
+    <|> tok KW_Abstract    >> return Abstract
+    <|> tok KW_Static      >> return Static
+    <|> tok KW_Strictfp    >> return StrictFP
+    <|> tok KW_Final       >> return Final
+    <|> tok KW_Native      >> return Native
+    <|> tok KW_Transient   >> return Transient
+    <|> tok KW_Volatile    >> return Volatile
     <|> Annotation <$> annotation
-    
+
 annotation :: P Annotation
 annotation = flip ($) <$ tok Op_AtSign <*> name <*> (
                try (flip NormalAnnotation <$> parens evlist)
@@ -344,8 +344,8 @@ elementValuePair :: P (Ident, ElementValue)
 elementValuePair = (,) <$> ident <* tok Op_Equal <*> elementValue
 
 elementValue :: P ElementValue
-elementValue = 
-    EVVal <$> (    InitArray <$> arrayInit 
+elementValue =
+    EVVal <$> (    InitArray <$> arrayInit
                <|> InitExp   <$> condExp )
     <|> EVAnn <$> annotation
 
@@ -379,8 +379,8 @@ localVarDecl = do
     return (ms, typ, vds)
 
 varInit :: P VarInit
-varInit = 
-    InitArray <$> arrayInit <|> 
+varInit =
+    InitArray <$> arrayInit <|>
     InitExp   <$> exp
 
 arrayInit :: P ArrayInit
@@ -396,28 +396,28 @@ block :: P Block
 block = braces $ Block <$> list blockStmt
 
 blockStmt :: P BlockStmt
-blockStmt = 
+blockStmt =
     (try $ do
         ms  <- list modifier
         cd  <- classDecl
-        return $ LocalClass (cd ms)) <|> 
+        return $ LocalClass (cd ms)) <|>
     (try $ do
         (m,t,vds) <- endSemi $ localVarDecl
-        return $ LocalVars m t vds) <|> 
+        return $ LocalVars m t vds) <|>
     BlockStmt <$> stmt
 
 stmt :: P Stmt
-stmt = 
+stmt =
     -- ifThen and ifThenElse, with a common prefix
     (do tok KW_If
         e   <- parens exp
-        (try $ 
+        (try $
             do th <- stmtNSI
                tok KW_Else
                el <- stmt
-               return $ IfThenElse e th el) <|> 
+               return $ IfThenElse e th el) <|>
            (do th <- stmt
-               return $ IfThen e th)) <|> 
+               return $ IfThen e th)) <|>
     -- while loops
     (do tok KW_While
         e   <- parens exp
@@ -425,14 +425,14 @@ stmt =
         return $ While e s) <|>
     -- basic and enhanced for
     (do tok KW_For
-        f <- parens $ 
+        f <- parens $
             (try $ do
                 fi <- opt forInit
                 semiColon
                 e  <- opt exp
                 semiColon
                 fu <- opt forUp
-                return $ BasicFor fi e fu) <|> 
+                return $ BasicFor fi e fu) <|>
             (do ms <- list modifier
                 t  <- ttype
                 i  <- ident
@@ -440,7 +440,7 @@ stmt =
                 e  <- exp
                 return $ EnhancedFor ms t i e)
         s <- stmt
-        return $ f s) <|> 
+        return $ f s) <|>
     -- labeled statements
     (try $ do
         lbl <- ident
@@ -493,13 +493,13 @@ stmtNSI =
 
 
 stmtNoTrail :: P Stmt
-stmtNoTrail = 
+stmtNoTrail =
     -- empty statement
     const Empty <$> semiColon <|>
     -- inner block
     StmtBlock <$> block <|>
     -- assertions
-    (endSemi $ do 
+    (endSemi $ do
         tok KW_Assert
         e   <- exp
         me2 <- opt $ colon >> exp
@@ -510,7 +510,7 @@ stmtNoTrail =
         sb <- switchBlock
         return $ Switch e sb) <|>
     -- do-while loops
-    (endSemi $ do 
+    (endSemi $ do
         tok KW_Do
         s <- stmt
         tok KW_While
@@ -575,9 +575,9 @@ switchStmt = do
     return $ SwitchBlock lbl bss
 
 switchLabel :: P SwitchLabel
-switchLabel = (tok KW_Default >> colon >> return Default) <|> 
-    (do tok KW_Case 
-        e <- exp 
+switchLabel = (tok KW_Default >> colon >> return Default) <|>
+    (do tok KW_Case
+        e <- exp
         colon
         return $ SwitchCase e)
 
@@ -657,11 +657,11 @@ infixExpSuffix :: P (Exp -> Exp)
 infixExpSuffix =
     (do op <- infixOp
         e2 <- unaryExp
-        return $ \e1 -> BinOp e1 op e2) <|> 
+        return $ \e1 -> BinOp e1 op e2) <|>
     (do tok KW_Instanceof
         t  <- refType
         return $ \e1 -> InstanceOf e1 t)
-    
+
 unaryExp :: P Exp
 unaryExp = try preIncDec <|>
     try (do
@@ -680,11 +680,11 @@ postfixExpNES = -- try postIncDec <|>
     ExpName <$> name
 
 postfixExp :: P Exp
-postfixExp = do 
+postfixExp = do
     pe <- postfixExpNES
     ops <- list postfixOp
     return $ foldl (\a s -> s a) pe ops
-    
+
 
 primary :: P Exp
 primary = primaryNPS |>> primarySuffix
@@ -695,16 +695,16 @@ primaryNPS = try arrayCreation <|> primaryNoNewArrayNPS
 primaryNoNewArray = startSuff primaryNoNewArrayNPS primarySuffix
 
 primaryNoNewArrayNPS :: P Exp
-primaryNoNewArrayNPS = 
+primaryNoNewArrayNPS =
     Lit <$> literal <|>
     const This <$> tok KW_This <|>
-    parens exp <|> 
+    parens exp <|>
     -- TODO: These two following should probably be merged more
-    (try $ do 
-        rt <- resultType 
+    (try $ do
+        rt <- resultType
         period >> tok KW_Class
         return $ ClassLit rt) <|>
-    (try $ do 
+    (try $ do
         n <- name
         period >> tok KW_This
         return $ ThisClass n) <|>
@@ -721,7 +721,7 @@ primarySuffix = try instanceCreationSuffix <|>
 
 
 instanceCreationNPS :: P Exp
-instanceCreationNPS = 
+instanceCreationNPS =
     do tok KW_New
        tas <- lopt typeArgs
        ct  <- classType
@@ -747,8 +747,8 @@ instanceCreation = try instanceCreationNPS <|> do
      QualInstanceCreation {} -> return icp
      _ -> fail ""
 
-{- 
-instanceCreation = 
+{-
+instanceCreation =
     (do tok KW_New
         tas <- lopt typeArgs
         ct  <- classType
@@ -761,7 +761,7 @@ instanceCreation =
         i   <- ident
         as  <- args
         mcb <- opt classBody
-        return $ QualInstanceCreation p tas i as mcb) 
+        return $ QualInstanceCreation p tas i as mcb)
 -}
 
 fieldAccessNPS :: P FieldAccess
@@ -772,7 +772,7 @@ fieldAccessNPS =
     (do n <- name
         period >> tok KW_Super >> period
         i <- ident
-        return $ ClassFieldAccess n i)    
+        return $ ClassFieldAccess n i)
 
 fieldAccessSuffix :: P (Exp -> FieldAccess)
 fieldAccessSuffix = do
@@ -793,7 +793,7 @@ fieldAccess = try fieldAccessNPS <|> do
 fieldAccess :: P FieldAccess
 fieldAccess = try fieldAccessNPS <|> do
     p <- primary
-    fs <- fieldAccessSuffix 
+    fs <- fieldAccessSuffix
     return (fs p)
 -}
 
@@ -811,7 +811,7 @@ fieldAccess =
     (do p <- primary
         period
         i <- ident
-        return $ PrimaryFieldAccess p i) 
+        return $ PrimaryFieldAccess p i)
 -}
 
 methodInvocationNPS :: P MethodInvocation
@@ -892,7 +892,7 @@ arrayAccessSuffix :: P (Exp -> ArrayIndex)
 arrayAccessSuffix = do
     e <- brackets exp
     return $ \ref -> ArrayIndex ref e
-    
+
 arrayAccess = try arrayAccessNPS <|> do
     p <- primaryNoNewArrayNPS
     ss <- list primarySuffix
@@ -919,14 +919,14 @@ arrayCreation = do
     f <- (try $ do
              ds <- list1 $ brackets empty
              ai <- arrayInit
-             return $ \t -> ArrayCreateInit t (length ds) ai) <|> 
+             return $ \t -> ArrayCreateInit t (length ds) ai) <|>
          (do des <- list1 $ brackets exp
              ds  <- list  $ brackets empty
              return $ \t -> ArrayCreate t des (length ds))
     return $ f t
 
 literal :: P Literal
-literal = 
+literal =
     javaToken $ \t -> case t of
         IntTok     i -> Just (Int i)
         LongTok    l -> Just (Word l)
@@ -942,9 +942,9 @@ literal =
 
 preIncDecOp, prefixOp, postfixOp :: P (Exp -> Exp)
 preIncDecOp =
-    (tok Op_PPlus >> return PreIncrement) <|> 
+    (tok Op_PPlus >> return PreIncrement) <|>
     (tok Op_MMinus >> return PreDecrement)
-prefixOp = 
+prefixOp =
     (tok Op_Bang  >> return PreNot      ) <|>
     (tok Op_Tilde >> return PreBitCompl ) <|>
     (tok Op_Plus  >> return PrePlus     ) <|>
@@ -1006,13 +1006,13 @@ primType =
     tok KW_Long    >> return LongT     <|>
     tok KW_Char    >> return CharT     <|>
     tok KW_Float   >> return FloatT    <|>
-    tok KW_Double  >> return DoubleT   
-    
+    tok KW_Double  >> return DoubleT
+
 refType :: P RefType
 refType =
     (do pt <- primType
         (_:bs) <- list1 arrBrackets
-        return $ foldl (\f _ -> ArrayType . RefType . f) 
+        return $ foldl (\f _ -> ArrayType . RefType . f)
                         (ArrayType . PrimType) bs pt) <|>
     (do ct <- classType
         bs <- list arrBrackets
@@ -1020,7 +1020,7 @@ refType =
                             ClassRefType bs ct) <?> "refType"
 
 nonArrayType :: P Type
-nonArrayType = PrimType <$> primType <|> 
+nonArrayType = PrimType <$> primType <|>
     RefType <$> ClassRefType <$> classType
 
 classType :: P ClassType
@@ -1107,11 +1107,11 @@ seplist p sep = option [] $ seplist1 p sep
 
 seplist1 :: P a -> P sep -> P [a]
 --seplist1 = sepBy1
-seplist1 p sep = 
-    p >>= \a -> 
+seplist1 p sep =
+    p >>= \a ->
         try (do sep
                 as <- seplist1 p sep
-                return (a:as)) 
+                return (a:as))
         <|> return [a]
 
 startSuff, (|>>) :: P a -> P (a -> a) -> P a
