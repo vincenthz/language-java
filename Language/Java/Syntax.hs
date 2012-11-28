@@ -1,15 +1,9 @@
 {-# LANGUAGE CPP, DeriveDataTypeable #-}
 module Language.Java.Syntax where
 
-#ifdef __GLASGOW_HASKELL__
-#ifdef BASE4
 import Data.Data
+
 #define DERIVE deriving (Eq,Ord,Show,Typeable,Data)
-#else
-import Data.Generics (Data(..),Typeable(..))
-#define DERIVE deriving (Eq,Ord,Show)
-#endif
-#endif
 
 -----------------------------------------------------------------------
 -- Packages
