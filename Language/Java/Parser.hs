@@ -328,6 +328,7 @@ modifier =
     <|> tok KW_Native      >> return Native
     <|> tok KW_Transient   >> return Transient
     <|> tok KW_Volatile    >> return Volatile
+    <|> tok KW_Synchronized >> return SynchronizedM
     <|> Annotation <$> annotation
 
 annotation :: P Annotation
