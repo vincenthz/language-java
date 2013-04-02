@@ -44,7 +44,6 @@ import Data.Maybe ( isJust, catMaybes )
 import Control.Monad ( ap )
 import Control.Applicative ( (<$>), (<$), (<*) )
 
-
 type P = Parsec [L Token] ()
 
 -- A trick to allow >> and >>=, normally infixr 1, to be
@@ -328,6 +327,7 @@ modifier =
     <|> tok KW_Native      >> return Native
     <|> tok KW_Transient   >> return Transient
     <|> tok KW_Volatile    >> return Volatile
+    <|> tok KW_Synchronized >> return Synchronised
     <|> Annotation <$> annotation
 
 annotation :: P Annotation
@@ -556,8 +556,8 @@ stmtNoTrail =
 
 forInit :: P ForInit
 forInit = (do
-    (m,t,vds) <- localVarDecl
-    return $ ForLocalVars m t vds) <|>
+    try (do (m,t,vds) <- localVarDecl
+            return $ ForLocalVars m t vds)) <|>
     (seplist1 stmtExp comma >>= return . ForInitExps)
 
 forUp :: P [Exp]
@@ -842,13 +842,14 @@ methodInvocationSuffix = do
         return $ \p -> PrimaryMethodCall p [] i as
 
 methodInvocationExp :: P Exp
-methodInvocationExp = try (MethodInv <$> methodInvocationNPS) <|> do
+methodInvocationExp = try (do
     p <- primaryNPS
     ss <- list primarySuffix
     let mip = foldl (\a s -> s a) p ss
     case mip of
      MethodInv _ -> return mip
-     _ -> fail ""
+     _ -> fail "") <|>
+     (MethodInv <$> methodInvocationNPS)
 
 {-
 methodInvocation :: P MethodInvocation
