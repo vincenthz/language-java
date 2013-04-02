@@ -842,13 +842,14 @@ methodInvocationSuffix = do
         return $ \p -> PrimaryMethodCall p [] i as
 
 methodInvocationExp :: P Exp
-methodInvocationExp = try (MethodInv <$> methodInvocationNPS) <|> do
+methodInvocationExp = try (do
     p <- primaryNPS
     ss <- list primarySuffix
     let mip = foldl (\a s -> s a) p ss
     case mip of
      MethodInv _ -> return mip
-     _ -> fail ""
+     _ -> fail "") <|>
+     (MethodInv <$> methodInvocationNPS)
 
 {-
 methodInvocation :: P MethodInvocation
