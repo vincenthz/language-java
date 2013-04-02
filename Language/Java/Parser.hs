@@ -44,7 +44,6 @@ import Data.Maybe ( isJust, catMaybes )
 import Control.Monad ( ap )
 import Control.Applicative ( (<$>), (<$), (<*) )
 
-
 type P = Parsec [L Token] ()
 
 -- A trick to allow >> and >>=, normally infixr 1, to be
@@ -557,8 +556,8 @@ stmtNoTrail =
 
 forInit :: P ForInit
 forInit = (do
-    (m,t,vds) <- localVarDecl
-    return $ ForLocalVars m t vds) <|>
+    try (do (m,t,vds) <- localVarDecl
+            return $ ForLocalVars m t vds)) <|>
     (seplist1 stmtExp comma >>= return . ForInitExps)
 
 forUp :: P [Exp]
