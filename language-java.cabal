@@ -10,15 +10,12 @@ Description:            Java source manipulation.
 Homepage:               http://github.com/vincenthz/language-java
 Stability:              Experimental
 Build-Type:             Simple
-Cabal-Version:          >= 1.6
+Cabal-Version:          >= 1.8
 
 Extra-Source-Files:
-			test/abstract.java
-			test/rawTypes.java
-			test/test.java
-			test/typeVarMembers.java
-			test/LexerTest.hs
-			Language/Java/Lexer.x
+    tests/java/good/*.java
+    tests/java/bad/*.java
+    Language/Java/Lexer.x
 
 source-repository head
   type:                 git
@@ -41,3 +38,19 @@ Library
                         Language.Java.Pretty
   
   Other-modules:	
+
+Test-Suite test-java-parse
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests
+  Main-is:           Tests.hs
+  Build-Depends:     base >= 3 && < 5
+                   , mtl
+                   , QuickCheck >= 2
+                   , HUnit
+                   , test-framework
+                   , test-framework-quickcheck2
+                   , test-framework-hunit
+                   , language-java
+                   , filepath
+                   , directory
+  ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures
