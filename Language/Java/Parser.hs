@@ -81,6 +81,7 @@ compilationUnit = do
     mpd <- opt packageDecl
     ids <- list importDecl
     tds <- list typeDecl
+    eof
     return $ CompilationUnit mpd ids (catMaybes tds)
 
 packageDecl :: P PackageDecl
