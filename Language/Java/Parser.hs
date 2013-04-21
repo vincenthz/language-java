@@ -408,9 +408,10 @@ blockStmt =
     BlockStmt <$> stmt
 
 stmt :: P Stmt
-stmt =
-    -- ifThen and ifThenElse, with a common prefix
-    (do tok KW_If
+stmt = ifStmt <|> whileStmt <|> forStmt <|> labeledStmt <|> stmtNoTrail
+  where
+    ifStmt = do
+        tok KW_If
         e   <- parens exp
         (try $
             do th <- stmtNSI
@@ -418,14 +419,14 @@ stmt =
                el <- stmt
                return $ IfThenElse e th el) <|>
            (do th <- stmt
-               return $ IfThen e th)) <|>
-    -- while loops
-    (do tok KW_While
+               return $ IfThen e th)
+    whileStmt = do
+        tok KW_While
         e   <- parens exp
         s   <- stmt
-        return $ While e s) <|>
-    -- basic and enhanced for
-    (do tok KW_For
+        return $ While e s
+    forStmt = do
+        tok KW_For
         f <- parens $
             (try $ do
                 fi <- opt forInit
@@ -441,32 +442,29 @@ stmt =
                 e  <- exp
                 return $ EnhancedFor ms t i e)
         s <- stmt
-        return $ f s) <|>
-    -- labeled statements
-    (try $ do
+        return $ f s
+    labeledStmt = try $ do
         lbl <- ident
         colon
         s   <- stmt
-        return $ Labeled lbl s) <|>
-    -- the rest
-    stmtNoTrail
+        return $ Labeled lbl s
 
 stmtNSI :: P Stmt
-stmtNSI =
-    -- if statements - only full ifThenElse
-    (do tok KW_If
+stmtNSI = ifStmt <|> whileStmt <|> forStmt <|> labeledStmt <|> stmtNoTrail
+  where
+    ifStmt = do tok KW_If
         e  <- parens exp
         th <- stmtNSI
         tok KW_Else
         el <- stmtNSI
-        return $ IfThenElse e th el) <|>
-    -- while loops
-    (do tok KW_While
+        return $ IfThenElse e th el
+    whileStmt = do
+        tok KW_While
         e <- parens exp
         s <- stmtNSI
-        return $ While e s) <|>
-    -- for loops, both basic and enhanced
-    (do tok KW_For
+        return $ While e s
+    forStmt = do
+        tok KW_For
         f <- parens $ (try $ do
             fi <- opt forInit
             semiColon
@@ -482,16 +480,12 @@ stmtNSI =
             e  <- exp
             return $ EnhancedFor ms t i e)
         s <- stmtNSI
-        return $ f s) <|>
-    -- labeled stmts
-    (try $ do
+        return $ f s
+    labeledStmt = try $ do
         i <- ident
         colon
         s <- stmtNSI
-        return $ Labeled i s) <|>
-    -- the rest
-    stmtNoTrail
-
+        return $ Labeled i s
 
 stmtNoTrail :: P Stmt
 stmtNoTrail =
