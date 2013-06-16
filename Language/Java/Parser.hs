@@ -452,7 +452,8 @@ stmt = ifStmt <|> whileStmt <|> forStmt <|> labeledStmt <|> stmtNoTrail
 stmtNSI :: P Stmt
 stmtNSI = ifStmt <|> whileStmt <|> forStmt <|> labeledStmt <|> stmtNoTrail
   where
-    ifStmt = do tok KW_If
+    ifStmt = do
+        tok KW_If
         e  <- parens exp
         th <- stmtNSI
         tok KW_Else
