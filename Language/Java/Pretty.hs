@@ -100,7 +100,7 @@ instance Pretty Decl where
 
 instance Pretty MemberDecl where
   prettyPrec p (FieldDecl mods t vds) =
-    hsep (map (prettyPrec p) mods ++ prettyPrec p t:map (prettyPrec p) vds) <> semi
+    hsep (map (prettyPrec p) mods ++ prettyPrec p t:punctuate (text ",") (map (prettyPrec p) vds)) <> semi
 
   prettyPrec p (MethodDecl mods tParams mt ident fParams throws body) =
     hsep [hsep (map (prettyPrec p) mods)
