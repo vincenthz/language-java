@@ -161,6 +161,7 @@ instance Pretty ExplConstrInv where
 
 instance Pretty Modifier where
   prettyPrec p (Annotation ann) = prettyPrec p ann $+$ nest (-1) ( text "")
+  prettyPrec p Synchronised = text "synchronized"
   prettyPrec p mod = text . map toLower $ show mod
 
 instance Pretty Annotation where
