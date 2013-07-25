@@ -155,7 +155,7 @@ data Modifier
     | Volatile
     | Native
     | Annotation Annotation
-    | Synchronized
+    | Synchronised
   DERIVE
 
 -- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
