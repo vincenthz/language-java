@@ -100,7 +100,7 @@ instance Pretty Decl where
 
 instance Pretty MemberDecl where
   prettyPrec p (FieldDecl mods t vds) =
-    hsep (map (prettyPrec p) mods ++ prettyPrec p t:map (prettyPrec p) vds) <> semi
+    hsep (map (prettyPrec p) mods ++ prettyPrec p t:punctuate (text ",") (map (prettyPrec p) vds)) <> semi
 
   prettyPrec p (MethodDecl mods tParams mt ident fParams throws body) =
     hsep [hsep (map (prettyPrec p) mods)
@@ -129,7 +129,7 @@ instance Pretty VarDecl where
 
 instance Pretty VarDeclId where
   prettyPrec p (VarId ident) = prettyPrec p ident
-  prettyPrec p (VarDeclArray vId) = prettyPrec p vId
+  prettyPrec p (VarDeclArray vId) = prettyPrec p vId <> text "[]"
 
 instance Pretty VarInit where
   prettyPrec p (InitExp e) = prettyPrec p e
