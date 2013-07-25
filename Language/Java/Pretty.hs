@@ -322,13 +322,13 @@ instance Pretty Exp where
 
   prettyPrec p (ExpName name) = prettyPrec p name
   
-  prettyPrec p (PostIncrement e) = parenPrec p 2 $ prettyPrec 2 e <> text "++"
+  prettyPrec p (PostIncrement e) = parenPrec p 1 $ prettyPrec 2 e <> text "++"
 
-  prettyPrec p (PostDecrement e) = parenPrec p 2 $ prettyPrec 2 e <> text "--"
+  prettyPrec p (PostDecrement e) = parenPrec p 1 $ prettyPrec 2 e <> text "--"
 
-  prettyPrec p (PreIncrement e)  = parenPrec p 2 $ text "++" <> prettyPrec 2 e
+  prettyPrec p (PreIncrement e)  = parenPrec p 1 $ text "++" <> prettyPrec 2 e
   
-  prettyPrec p (PreDecrement e)  = parenPrec p 2 $ text "--" <> prettyPrec 2 e
+  prettyPrec p (PreDecrement e)  = parenPrec p 1 $ text "--" <> prettyPrec 2 e
 
   prettyPrec p (PrePlus e) = parenPrec p 2 $ char '+' <> prettyPrec 2 e
   
