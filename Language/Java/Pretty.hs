@@ -100,7 +100,7 @@ instance Pretty Decl where
 
 instance Pretty MemberDecl where
   prettyPrec p (FieldDecl mods t vds) =
-    hsep (map (prettyPrec p) mods ++ prettyPrec p t:map (prettyPrec p) vds) <> semi
+    hsep (map (prettyPrec p) mods ++ prettyPrec p t:punctuate (text ",") (map (prettyPrec p) vds)) <> semi
 
   prettyPrec p (MethodDecl mods tParams mt ident fParams throws body) =
     hsep [hsep (map (prettyPrec p) mods)
@@ -322,13 +322,13 @@ instance Pretty Exp where
 
   prettyPrec p (ExpName name) = prettyPrec p name
   
-  prettyPrec p (PostIncrement e) = parenPrec p 2 $ prettyPrec 2 e <> text "++"
+  prettyPrec p (PostIncrement e) = parenPrec p 1 $ prettyPrec 2 e <> text "++"
 
-  prettyPrec p (PostDecrement e) = parenPrec p 2 $ prettyPrec 2 e <> text "--"
+  prettyPrec p (PostDecrement e) = parenPrec p 1 $ prettyPrec 2 e <> text "--"
 
-  prettyPrec p (PreIncrement e)  = parenPrec p 2 $ text "++" <> prettyPrec 2 e
+  prettyPrec p (PreIncrement e)  = parenPrec p 1 $ text "++" <> prettyPrec 2 e
   
-  prettyPrec p (PreDecrement e)  = parenPrec p 2 $ text "--" <> prettyPrec 2 e
+  prettyPrec p (PreDecrement e)  = parenPrec p 1 $ text "--" <> prettyPrec 2 e
 
   prettyPrec p (PrePlus e) = parenPrec p 2 $ char '+' <> prettyPrec 2 e
   
