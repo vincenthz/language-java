@@ -3,7 +3,7 @@ module Language.Java.Syntax where
 
 import Data.Data
 
-#define DERIVE deriving (Eq,Ord,Show,Typeable,Data)
+#define DERIVE deriving (Eq,Ord,Read,Show,Typeable,Data)
 
 -----------------------------------------------------------------------
 -- Packages

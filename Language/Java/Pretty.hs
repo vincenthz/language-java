@@ -129,7 +129,7 @@ instance Pretty VarDecl where
 
 instance Pretty VarDeclId where
   prettyPrec p (VarId ident) = prettyPrec p ident
-  prettyPrec p (VarDeclArray vId) = prettyPrec p vId
+  prettyPrec p (VarDeclArray vId) = prettyPrec p vId <> text "[]"
 
 instance Pretty VarInit where
   prettyPrec p (InitExp e) = prettyPrec p e
@@ -161,6 +161,7 @@ instance Pretty ExplConstrInv where
 
 instance Pretty Modifier where
   prettyPrec p (Annotation ann) = prettyPrec p ann $+$ nest (-1) ( text "")
+  prettyPrec p Synchronised = text "synchronized"
   prettyPrec p mod = text . map toLower $ show mod
 
 instance Pretty Annotation where
@@ -363,8 +364,8 @@ instance Pretty Literal where
   prettyPrec p (Float f) = text (show f) <> char 'F'
   prettyPrec p (Double d) = text (show d)
   prettyPrec p (Boolean b) = text . map toLower $ show b
-  prettyPrec p (Char c) = text (show c)
-  prettyPrec p (String s) = text (show s)
+  prettyPrec p (Char c) = text "'" <> text (ppChar c) <> text "'"
+  prettyPrec p (String s) = text "\"" <> text (concatMap ppChar s) <> text "\""
   prettyPrec p (Null) = text "null"
 
 instance Pretty Op where
@@ -514,6 +515,11 @@ ppThrows p ets = text "throws"
 ppResultType :: Int -> Maybe Type -> Doc
 ppResultType _ Nothing = text "void"
 ppResultType p (Just a) = prettyPrec p a
+
+ppChar :: Char -> String
+ppChar '\NUL' = "\\0"
+ppChar '"'    = "\\\""
+ppChar c      = init $ tail $ show c -- drop the single quotes
 
 -----------------------------------------------------------------------
 -- Names and identifiers

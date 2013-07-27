@@ -4,6 +4,7 @@ module Language.Java.Lexer (L(..), Token(..), lexer) where
 
 import Numeric
 import Data.Char
+import Data.Int
 
 import Debug.Trace (trace)
 }
@@ -96,8 +97,8 @@ tokens  :-
     0 $digit+ [lL]  { \p s -> L (pos p) $ LongTok (pickyReadOct (init s)) }
     $nonzero $digit*        { \p s -> L (pos p) $ IntTok (read s) }
     $nonzero $digit* [lL]   { \p s -> L (pos p) $ LongTok (read (init s)) }
-    0 [xX] $hexdig+         { \p s -> L (pos p) $ IntTok (fst . head $ readHex (drop 2 s)) }
-    0 [xX] $hexdig+ [lL]    { \p s -> L (pos p) $ LongTok (fst . head $ readHex (init (drop 2 s))) }
+    0 [xX] $hexdig+         { \p s -> L (pos p) $ IntTok (toJavaInt . fst . head $ readHex (drop 2 s)) }
+    0 [xX] $hexdig+ [lL]    { \p s -> L (pos p) $ LongTok (toJavaLong . fst . head $ readHex (init (drop 2 s))) }
 
     $digit+ \. $digit* @exponent? [dD]?           { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat $ '0':s) }
             \. $digit+ @exponent? [dD]?           { \p s -> L (pos p) $ DoubleTok (fst . head $ readFloat $ '0':s) }
@@ -171,6 +172,12 @@ tokens  :-
 
 
 {
+
+toJavaInt :: Integer -> Integer
+toJavaInt x = fromIntegral (fromIntegral x :: Int32)
+
+toJavaLong :: Integer -> Integer
+toJavaLong x = fromIntegral (fromIntegral x :: Int64)
 
 pickyReadOct :: String -> Integer
 pickyReadOct s =

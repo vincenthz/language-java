@@ -1,13 +1,13 @@
 Name:                   language-java
-Version:                0.2.4
+Version:                0.2.5.1
 License:                BSD3
 License-File:           LICENSE
 Author:                 Niklas Broberg
-Maintainer:             Vincent Hanquez <vincent@snarc.org>
+Maintainer:             James Koppel <darmanithird@gmail.com>
 Category:               Language
 Synopsis:               Manipulating Java source: abstract syntax, lexer, parser, and pretty-printer
 Description:            Java source manipulation.
-Homepage:               http://github.com/vincenthz/language-java
+Homepage:               http://github.com/jkoppel/language-java
 Stability:              Experimental
 Build-Type:             Simple
 Cabal-Version:          >= 1.8
@@ -19,7 +19,7 @@ Extra-Source-Files:
 
 source-repository head
   type:                 git
-  location:             git://github.com/vincenthz/language-java
+  location:             git://github.com/jkoppel/language-java
 
 Library
   Build-Tools:          alex >= 2.3
