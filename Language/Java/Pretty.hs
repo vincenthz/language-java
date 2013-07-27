@@ -364,8 +364,8 @@ instance Pretty Literal where
   prettyPrec p (Float f) = text (show f) <> char 'F'
   prettyPrec p (Double d) = text (show d)
   prettyPrec p (Boolean b) = text . map toLower $ show b
-  prettyPrec p (Char c) = text (show c)
-  prettyPrec p (String s) = text (show s)
+  prettyPrec p (Char c) = text "'" <> text (ppChar c) <> text "'"
+  prettyPrec p (String s) = text "\"" <> text (concatMap ppChar s) <> text "\""
   prettyPrec p (Null) = text "null"
 
 instance Pretty Op where
@@ -515,6 +515,11 @@ ppThrows p ets = text "throws"
 ppResultType :: Int -> Maybe Type -> Doc
 ppResultType _ Nothing = text "void"
 ppResultType p (Just a) = prettyPrec p a
+
+ppChar :: Char -> String
+ppChar '\NUL' = "\\0"
+ppChar '"'    = "\\\""
+ppChar c      = init $ tail $ show c -- drop the single quotes
 
 -----------------------------------------------------------------------
 -- Names and identifiers
