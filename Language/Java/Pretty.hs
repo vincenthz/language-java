@@ -1,6 +1,7 @@
 module Language.Java.Pretty where
 
 import Text.PrettyPrint
+import Text.Printf (printf)
 import Data.Char (toLower)
 import Data.List (intersperse)
 
@@ -363,8 +364,8 @@ instance Pretty Literal where
   prettyPrec p (Float f) = text (show f) <> char 'F'
   prettyPrec p (Double d) = text (show d)
   prettyPrec p (Boolean b) = text . map toLower $ show b
-  prettyPrec p (Char c) = text (show c)
-  prettyPrec p (String s) = text (show s)
+  prettyPrec p (Char c) = quotes $ text (escapeChar c)
+  prettyPrec p (String s) = doubleQuotes $ text (concatMap escapeString s)
   prettyPrec p (Null) = text "null"
 
 instance Pretty Op where
@@ -562,3 +563,26 @@ opPrec Xor     = 9
 opPrec Or      = 10
 opPrec CAnd    = 11
 opPrec COr     = 12
+
+escapeGeneral :: Char -> String
+escapeGeneral '\b' = "\\b"
+escapeGeneral '\t' = "\\t"
+escapeGeneral '\n' = "\\n"
+escapeGeneral '\f' = "\\f"
+escapeGeneral '\r' = "\\r"
+escapeGeneral '\\' = "\\\\"
+escapeGeneral c | c >= ' ' && c < '\DEL' = [c]
+                | c <= '\xFFFF' = printf "\\u%04x" (fromEnum c)
+                | otherwise = error $ "Language.Java.Pretty.escapeGeneral: Char " ++ show c ++ " too large for Java char"
+
+escapeChar :: Char -> String
+escapeChar '\'' = "\\'"
+escapeChar c = escapeGeneral c
+
+escapeString :: Char -> String
+escapeString '"' = "\\\""
+escapeString c | c <= '\xFFFF' = escapeGeneral c
+               | otherwise = escapeGeneral lead ++ escapeGeneral trail
+                   where c' = fromEnum c - 0x010000
+                         lead = toEnum $ 0xD800 + c' `div` 0x0400
+                         trail = toEnum $ 0xDC00 + c' `mod` 0x0400
