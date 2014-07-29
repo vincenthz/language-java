@@ -594,8 +594,8 @@ stmtExp = try preIncDec
     <|> try postIncDec
     <|> try assignment
     -- There are sharing gains to be made by unifying these two
-    <|> try instanceCreation
-    <|> methodInvocationExp
+    <|> try methodInvocationExp
+    <|> instanceCreation
 
 preIncDec :: P Exp
 preIncDec = do
