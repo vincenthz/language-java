@@ -128,6 +128,7 @@ normalClassDecl = do
     mex <- opt extends
     imp <- lopt implements
     bod <- classBody
+    optional semiColon
     return $ \ms -> ClassDecl ms i tps ((fmap head) mex) imp bod
 
 extends :: P [RefType]
