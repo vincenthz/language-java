@@ -973,14 +973,18 @@ infixOp =
     (tok Op_Plus    >> return Add       ) <|>
     (tok Op_Minus   >> return Sub       ) <|>
     (tok Op_LShift  >> return LShift    ) <|>
-    -- (tok Op_RShift  >> return RShift    ) <|>
-    -- (tok Op_RRShift >> return RRShift   ) <|>
     (tok Op_LThan   >> return LThan     ) <|>
-    (tok Op_GThan   >>
-     tok Op_GThan   >> return RShift    ) <|>
-    (tok Op_GThan   >>
-     tok Op_GThan   >>
-     tok Op_GThan   >> return RRShift   ) <|>
+    (try $ do
+       tok Op_GThan   
+       tok Op_GThan   
+       tok Op_GThan
+       return RRShift   ) <|>
+           
+    (try $ do
+       tok Op_GThan 
+       tok Op_GThan
+       return RShift    ) <|>
+           
     (tok Op_GThan   >> return GThan     ) <|>                                          
     (tok Op_LThanE  >> return LThanE    ) <|>
     (tok Op_GThanE  >> return GThanE    ) <|>

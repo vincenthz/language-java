@@ -11,6 +11,11 @@ class Some {
       some >>>= 1;
       some >>= 1;
 
+      boolean a = some > 1;
+      boolean f = some < 1;
+
+      boolean a1 = some >= 1;
+      boolean f1 = some <= 1;
 
       Map<Integer, List<IHRCity>> mamap;
 
@@ -18,4 +23,6 @@ class Some {
 
       final Map<Integer, List<String>> some = null;
    }
+
+
 }
