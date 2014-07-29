@@ -143,6 +143,7 @@ enumClassDecl = do
     i   <- ident
     imp <- lopt implements
     bod <- enumBody
+    optional semiColon
     return $ \ms -> EnumDecl ms i imp bod
 
 classBody :: P ClassBody
@@ -177,6 +178,7 @@ interfaceDecl = do
     tps <- lopt typeParams
     exs <- lopt extends
     bod <- interfaceBody
+    optional semiColon
     return $ \ms -> InterfaceDecl ms id tps exs bod
 
 interfaceBody :: P InterfaceBody

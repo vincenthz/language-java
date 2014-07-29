@@ -16,4 +16,27 @@ class Some {
 
    } // no colon case
 
+   enum Enum {
+
+   };
+
+   enum Enum {
+
+   } ;
+
+   enum Enum {
+
+   } // no colon
+
+   interface Interface {
+
+   };
+
+   interface Interface {
+
+   } ;
+
+   interface Interface {
+
+   } // no colon
 }
