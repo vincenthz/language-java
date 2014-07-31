@@ -29,5 +29,5 @@ class MiscMath<T extends Number>{
 		}
 		return cn;
 	}
-	void <S> loop(S s){ this.<S>loop(s);}
+   <S> void loop(S s){ this.<S>loop(s);}
 }
