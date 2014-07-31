@@ -10,11 +10,18 @@ public class Some {
 
    public void some() {
       Object[][] a = new Object[][] {null};
-      Object[][] a = new Object[][] {new Object[] {}};
+      Object[][] b = new Object[][] {new Object[] {}};
    }
 
-   // public void firstIndex() {
-   //    Object[][] a = new Object[1][];
-   // }
+   public void allIndexes() {
+      Object[][] a = new Object[1][2];
+   }
 
+   public void firstIndex() {
+      onarg(new Object[1][]);
+
+      Object[][] a = new Object[1][] ;
+   }
+
+   public void onarg(Object[][] ignored) {}
 }
