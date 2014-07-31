@@ -411,7 +411,7 @@ instance Pretty Lhs where
   prettyPrec p (ArrayLhs ain) = prettyPrec p ain
 
 instance Pretty ArrayIndex where
-  prettyPrec p (ArrayIndex ref e) = prettyPrec p ref <> brackets (prettyPrec p e)
+  prettyPrec p (ArrayIndex ref e) = prettyPrec p ref <> (hcat $ map (brackets . (prettyPrec p)) e)
 
 instance Pretty FieldAccess where
   prettyPrec p (PrimaryFieldAccess e ident) =

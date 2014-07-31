@@ -377,7 +377,7 @@ data Lhs
   DERIVE
 
 -- | Array access
-data ArrayIndex = ArrayIndex Exp Exp    -- ^ Index into an array
+data ArrayIndex = ArrayIndex Exp [Exp]    -- ^ Index into an array
   DERIVE
 
 -- | A field access expression may access a field of an object or array, a reference to which is the value
