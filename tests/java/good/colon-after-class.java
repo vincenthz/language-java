@@ -9,6 +9,12 @@ class Some {
 
    class SomeInner {
 
+      // semicolon after class declaration is correct case
+   } ;;
+
+
+   class SomeInner {
+
 
    } /* comment there */ ;
 
@@ -26,6 +32,10 @@ class Some {
 
    enum Enum {
 
+   } ;;
+
+   enum Enum {
+
    } // no colon
 
    interface Interface {
@@ -34,9 +44,17 @@ class Some {
 
    interface Interface {
 
+   };;
+
+   interface Interface {
+
    } ;
 
    interface Interface {
 
    } // no colon
+
+   interface Interface {
+
+   };;
 }

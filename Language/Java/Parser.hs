@@ -128,7 +128,6 @@ normalClassDecl = do
     mex <- opt extends
     imp <- lopt implements
     bod <- classBody
-    optional semiColon
     return $ \ms -> ClassDecl ms i tps ((fmap head) mex) imp bod
 
 extends :: P [RefType]
@@ -143,11 +142,10 @@ enumClassDecl = do
     i   <- ident
     imp <- lopt implements
     bod <- enumBody
-    optional semiColon
     return $ \ms -> EnumDecl ms i imp bod
 
 classBody :: P ClassBody
-classBody = ClassBody <$> braces classBodyDecls
+classBody = ClassBody <$> braces classBodyStatements
 
 enumBody :: P EnumBody
 enumBody = braces $ do
@@ -164,10 +162,10 @@ enumConst = do
     return $ EnumConstant id as mcb
 
 enumBodyDecls :: P [Decl]
-enumBodyDecls = semiColon >> classBodyDecls
+enumBodyDecls = semiColon >> classBodyStatements
 
-classBodyDecls :: P [Decl]
-classBodyDecls = list classBodyDecl
+classBodyStatements :: P [Decl]
+classBodyStatements = catMaybes <$> list classBodyStatement
 
 -- Interface declarations
 
@@ -178,7 +176,6 @@ interfaceDecl = do
     tps <- lopt typeParams
     exs <- lopt extends
     bod <- interfaceBody
-    optional semiColon
     return $ \ms -> InterfaceDecl ms id tps exs bod
 
 interfaceBody :: P InterfaceBody
@@ -187,15 +184,18 @@ interfaceBody = InterfaceBody . catMaybes <$>
 
 -- Declarations
 
-classBodyDecl :: P Decl
-classBodyDecl =
+classBodyStatement :: P (Maybe Decl)
+classBodyStatement =
     (try $ do
-        mst <- bopt (tok KW_Static)
-        blk <- block
-        return $ InitDecl mst blk) <|>
+       list1 semiColon
+       return Nothing) <|>
+    (try $ do
+       mst <- bopt (tok KW_Static)
+       blk <- block
+       return $ Just $ InitDecl mst blk) <|>
     (do ms  <- list modifier
         dec <- memberDecl
-        return $ MemberDecl (dec ms))
+        return $ Just $ MemberDecl (dec ms))
 
 memberDecl :: P (Mod MemberDecl)
 memberDecl =
