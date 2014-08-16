@@ -885,12 +885,12 @@ args = parens $ seplist exp comma
 arrayAccessNPS :: P ArrayIndex
 arrayAccessNPS = do
     n <- name
-    e <- brackets exp
+    e <- list1 $ brackets exp
     return $ ArrayIndex (ExpName n) e
 
 arrayAccessSuffix :: P (Exp -> ArrayIndex)
 arrayAccessSuffix = do
-    e <- brackets exp
+    e <- list1 $ brackets exp
     return $ \ref -> ArrayIndex ref e
 
 arrayAccess = try arrayAccessNPS <|> do
@@ -920,7 +920,7 @@ arrayCreation = do
              ds <- list1 $ brackets empty
              ai <- arrayInit
              return $ \t -> ArrayCreateInit t (length ds) ai) <|>
-         (do des <- list1 $ brackets exp
+         (do des <- list1 $ try $ brackets exp
              ds  <- list  $ brackets empty
              return $ \t -> ArrayCreate t des (length ds))
     return $ f t
