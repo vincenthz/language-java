@@ -154,8 +154,6 @@ tokens  :-
     "^"             { \p _ -> L (pos p) $ Op_Caret        }
     "%"             { \p _ -> L (pos p) $ Op_Percent      }
     "<<"            { \p _ -> L (pos p) $ Op_LShift       }
-    ">>"            { \p _ -> L (pos p) $ Op_RShift       }
-    ">>>"           { \p _ -> L (pos p) $ Op_RRShift      }
     "+="            { \p _ -> L (pos p) $ Op_PlusE        }
     "-="            { \p _ -> L (pos p) $ Op_MinusE       }
     "*="            { \p _ -> L (pos p) $ Op_StarE        }
@@ -351,8 +349,6 @@ data Token
     | Op_Caret
     | Op_Percent
     | Op_LShift
-    | Op_RShift
-    | Op_RRShift
     | Op_PlusE
     | Op_MinusE
     | Op_StarE
