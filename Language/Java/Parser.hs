@@ -145,7 +145,7 @@ enumClassDecl = do
     return $ \ms -> EnumDecl ms i imp bod
 
 classBody :: P ClassBody
-classBody = ClassBody <$> braces classBodyDecls
+classBody = ClassBody <$> braces classBodyStatements
 
 enumBody :: P EnumBody
 enumBody = braces $ do
@@ -162,10 +162,10 @@ enumConst = do
     return $ EnumConstant id as mcb
 
 enumBodyDecls :: P [Decl]
-enumBodyDecls = semiColon >> classBodyDecls
+enumBodyDecls = semiColon >> classBodyStatements
 
-classBodyDecls :: P [Decl]
-classBodyDecls = list classBodyDecl
+classBodyStatements :: P [Decl]
+classBodyStatements = catMaybes <$> list classBodyStatement
 
 -- Interface declarations
 
@@ -184,15 +184,18 @@ interfaceBody = InterfaceBody . catMaybes <$>
 
 -- Declarations
 
-classBodyDecl :: P Decl
-classBodyDecl =
+classBodyStatement :: P (Maybe Decl)
+classBodyStatement =
     (try $ do
-        mst <- bopt (tok KW_Static)
-        blk <- block
-        return $ InitDecl mst blk) <|>
+       list1 semiColon
+       return Nothing) <|>
+    (try $ do
+       mst <- bopt (tok KW_Static)
+       blk <- block
+       return $ Just $ InitDecl mst blk) <|>
     (do ms  <- list modifier
         dec <- memberDecl
-        return $ MemberDecl (dec ms))
+        return $ Just $ MemberDecl (dec ms))
 
 memberDecl :: P (Mod MemberDecl)
 memberDecl =
