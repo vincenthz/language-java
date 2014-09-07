@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Language.Java.Parser (
     parser,
 
@@ -42,7 +43,16 @@ import Prelude hiding ( exp, catch, (>>), (>>=) )
 import qualified Prelude as P ( (>>), (>>=) )
 import Data.Maybe ( isJust, catMaybes )
 import Control.Monad ( ap )
+
+#if __GLASGOW_HASKELL__ < 707
 import Control.Applicative ( (<$>), (<$), (<*) )
+-- Since I cba to find the instance Monad m => Applicative m declaration.
+(<*>) :: Monad m => m (a -> b) -> m a -> m b
+(<*>) = ap
+infixl 4 <*>
+#else
+import Control.Applicative ( (<$>), (<$), (<*), (<*>) )
+#endif
 
 type P = Parsec [L Token] ()
 
@@ -54,11 +64,6 @@ type P = Parsec [L Token] ()
 infixr 2 >>, >>=
 -- Note also when reading that <$> is infixl 4 and thus has
 -- lower precedence than all the others (>>, >>=, and <|>).
-
--- Since I cba to find the instance Monad m => Applicative m declaration.
-(<*>) :: Monad m => m (a -> b) -> m a -> m b
-(<*>) = ap
-infixl 4 <*>
 
 ----------------------------------------------------------------------------
 -- Top-level parsing
