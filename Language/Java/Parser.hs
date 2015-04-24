@@ -1068,7 +1068,7 @@ bounds :: P [RefType]
 bounds = tok KW_Extends >> seplist1 refType (tok Op_And)
 
 typeArgs :: P [TypeArgument]
-typeArgs = angles $ seplist1 typeArg comma
+typeArgs = angles $ seplist typeArg comma
 
 typeArg :: P TypeArgument
 typeArg = tok Op_Query >> Wildcard <$> opt wildcardBound
