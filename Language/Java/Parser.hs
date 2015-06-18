@@ -617,6 +617,23 @@ postIncDec = do
     ops <- list1 postfixOp
     return $ foldl (\a s -> s a) e ops
 
+lambdaExp :: P Exp
+lambdaExp = do
+  lps <- lambdaParams
+  la <- lambdaArrow
+  lb <- lambdaBody
+  return $ Lambda lps lb
+
+lambdaParams :: P LambdaParams
+lambdaParams
+  =   try (LambdaSingleParam <$> ident)
+  <|> try (parens $ LambdaFormalParams <$> (seplist formalParam comma))
+  <|> try (parens $ LambdaInferredParams <$> (seplist ident comma))
+
+lambdaBody :: P LambdaBody
+lambdaBody =   try (LambdaExp <$> exp)
+           <|> try (LambdaBlock <$> block)
+
 assignment :: P Exp
 assignment = do
     lh <- lhs
@@ -629,10 +646,9 @@ lhs = try (FieldLhs <$> fieldAccess)
     <|> try (ArrayLhs <$> arrayAccess)
     <|> NameLhs <$> name
 
-
-
 exp :: P Exp
-exp = assignExp
+exp =   try lambdaExp
+    <|> try assignExp
 
 assignExp :: P Exp
 assignExp = try assignment <|> condExp
@@ -983,17 +999,17 @@ infixOp =
     (tok Op_LShift  >> return LShift    ) <|>
     (tok Op_LThan   >> return LThan     ) <|>
     (try $ do
-       tok Op_GThan   
-       tok Op_GThan   
+       tok Op_GThan
+       tok Op_GThan
        tok Op_GThan
        return RRShift   ) <|>
-           
+
     (try $ do
-       tok Op_GThan 
+       tok Op_GThan
        tok Op_GThan
        return RShift    ) <|>
-           
-    (tok Op_GThan   >> return GThan     ) <|>                                          
+
+    (tok Op_GThan   >> return GThan     ) <|>
     (tok Op_LThanE  >> return LThanE    ) <|>
     (tok Op_GThanE  >> return GThanE    ) <|>
     (tok Op_Equals  >> return Equal     ) <|>
@@ -1162,12 +1178,12 @@ angles   = between (tok Op_LThan)   (tok Op_GThan)
 endSemi :: P a -> P a
 endSemi p = p >>= \a -> semiColon >> return a
 
-comma, colon, semiColon, period :: P ()
+comma, colon, semiColon, period, lambdaArrow :: P ()
 comma     = tok Comma
 colon     = tok Op_Colon
 semiColon = tok SemiColon
 period    = tok Period
-
+lambdaArrow = tok LambdaArrow
 ------------------------------------------------------------
 
 test = "public class Foo { }"

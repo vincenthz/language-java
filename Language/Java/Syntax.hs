@@ -342,7 +342,23 @@ data Exp
     | Cond Exp Exp Exp
     -- | Assignment of the result of an expression to a variable.
     | Assign Lhs AssignOp Exp
+
+    -- | Lambda expression
+    | Lambda LambdaParams LambdaBody
   DERIVE
+
+-- ¦ A lambda parameter can be a single parameter, or mulitple formal or mulitple inferred parameters
+data LambdaParams
+  = LambdaSingleParam Ident
+  | LambdaFormalParams [FormalParam]
+  | LambdaInferredParams [Ident]
+    DERIVE
+
+-- | The body of a lambda expression can be a block or an expression
+data LambdaBody
+  = LambdaExp Exp
+  | LambdaBlock Block
+    DERIVE
 
 -- | A literal denotes a fixed, unchanging value.
 data Literal
