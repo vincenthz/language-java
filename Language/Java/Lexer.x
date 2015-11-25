@@ -131,6 +131,7 @@ tokens  :-
     \.              { \p _ -> L (pos p) $ Period          }
 
     "="             { \p _ -> L (pos p) $ Op_Equal        }
+    "->"             { \p _ -> L (pos p) $ LambdaArrow    }
     ">"             { \p _ -> L (pos p) $ Op_GThan        }
     "<"             { \p _ -> L (pos p) $ Op_LThan        }
     "!"             { \p _ -> L (pos p) $ Op_Bang         }
@@ -310,6 +311,7 @@ data Token
     | SemiColon
     | Comma
     | Period
+    | LambdaArrow
 
     -- Literals
     | IntTok  Integer
