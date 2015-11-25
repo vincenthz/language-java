@@ -32,6 +32,8 @@ Library
   if impl(ghc < 7.6)
     Build-Depends:      syb
 
+  ghc-options:         -Wall -fwarn-tabs -fno-warn-missing-signatures
+
   Exposed-modules:      Language.Java.Lexer,
                         Language.Java.Syntax,
                         Language.Java.Parser,
