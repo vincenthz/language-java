@@ -21,6 +21,8 @@ module Language.Java.Parser (
 
     ttype, primType, refType, classType, resultType,
 
+    lambdaExp, methodRef,
+
     typeParams, typeParam,
 
     name, ident,
@@ -603,6 +605,8 @@ stmtExp = try preIncDec
     <|> try assignment
     -- There are sharing gains to be made by unifying these two
     <|> try methodInvocationExp
+    <|> try lambdaExp
+    <|> try methodRef
     <|> instanceCreation
 
 preIncDec :: P Exp
@@ -635,7 +639,7 @@ exp :: P Exp
 exp = assignExp
 
 assignExp :: P Exp
-assignExp = try assignment <|> condExp
+assignExp = try methodRef <|> try lambdaExp <|> try assignment <|> condExp
 
 condExp :: P Exp
 condExp = do
@@ -750,6 +754,20 @@ instanceCreation = try instanceCreationNPS <|> do
     case icp of
      QualInstanceCreation {} -> return icp
      _ -> fail ""
+
+lambdaExp :: P Exp
+lambdaExp = do 
+  args <- (try $ parens $ seplist ident comma) <|> (list ident)
+  tok LambdaArrow
+
+  (Lambda args) <$> ((LambdaBlock <$> (try block)) <|> (LambdaExpression <$> postfixExp))
+
+methodRef :: P Exp
+methodRef = do
+  c <- ident
+  tok MethodRefSep
+  m <- ident
+  return $ MethodRef c m
 
 {-
 instanceCreation =
