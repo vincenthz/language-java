@@ -1,9 +1,10 @@
-{-# LANGUAGE CPP, DeriveDataTypeable #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, DeriveGeneric #-}
 module Language.Java.Syntax where
 
 import Data.Data
+import GHC.Generics (Generic)
 
-#define DERIVE deriving (Eq,Ord,Show,Typeable,Data)
+#define DERIVE deriving (Eq,Ord,Show,Typeable,Generic,Data)
 
 -----------------------------------------------------------------------
 -- Packages
