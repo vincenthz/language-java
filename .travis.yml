@@ -1,0 +1,49 @@
+sudo: false
+
+env:
+ - CABALVER=1.18 GHCVER=7.6.3
+ - CABALVER=1.18 GHCVER=7.8.4
+ - CABALVER=1.22 GHCVER=7.10.2
+ - CABALVER=head GHCVER=head
+
+matrix:
+  allow_failures:
+   - env: CABALVER=head GHCVER=head
+
+addons:
+    apt:
+        sources:
+         - hvr-ghc
+        packages:
+         - cabal-install-1.18
+         - cabal-install-1.20
+         - cabal-install-1.22
+         - cabal-install-head
+         - ghc-7.6.3
+         - ghc-7.8.4
+         - ghc-7.10.2
+         - ghc-head
+
+before_install:
+ - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+
+install:
+ - cabal --version
+ - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+ - travis_retry cabal update
+ - cabal install --only-dependencies --enable-tests
+
+script:
+ - cabal configure --enable-tests -v2
+ - cabal build
+ - cabal test
+ - cabal check
+ - cabal sdist
+ - export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
+   cd dist/;
+   if [ -f "$SRC_TGZ" ]; then
+      cabal install --force-reinstalls "$SRC_TGZ";
+   else
+      echo "expected '$SRC_TGZ' not found";
+      exit 1;
+   fi
