@@ -342,6 +342,10 @@ data Exp
     | Cond Exp Exp Exp
     -- | Assignment of the result of an expression to a variable.
     | Assign Lhs AssignOp Exp
+    -- | Lambda expression
+    | Lambda [Ident] LambdaExpression
+    -- | Method reference
+    | MethodRef Ident Ident
   DERIVE
 
 -- | A literal denotes a fixed, unchanging value.
@@ -388,6 +392,13 @@ data FieldAccess
     | ClassFieldAccess Name Ident       -- ^ Accessing a (static) field of a named class.
   DERIVE
 
+
+-- | Lambda expression, starting from java 8
+data LambdaExpression
+    = LambdaExpression Exp
+    | LambdaBlock Block
+  DERIVE
+    
 
 -- | A method invocation expression is used to invoke a class or instance method.
 data MethodInvocation

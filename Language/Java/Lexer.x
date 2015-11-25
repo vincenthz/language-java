@@ -129,6 +129,8 @@ tokens  :-
     \;              { \p _ -> L (pos p) $ SemiColon       }
     \,              { \p _ -> L (pos p) $ Comma           }
     \.              { \p _ -> L (pos p) $ Period          }
+    "->"            { \p _ -> L (pos p) $ LambdaArrow     }
+    "::"            { \p _ -> L (pos p) $ MethodRefSep    }
 
     "="             { \p _ -> L (pos p) $ Op_Equal        }
     ">"             { \p _ -> L (pos p) $ Op_GThan        }
@@ -310,6 +312,8 @@ data Token
     | SemiColon
     | Comma
     | Period
+    | LambdaArrow
+    | MethodRefSep
 
     -- Literals
     | IntTok  Integer
