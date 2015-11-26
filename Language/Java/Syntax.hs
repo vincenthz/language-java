@@ -344,7 +344,7 @@ data Exp
     -- | Assignment of the result of an expression to a variable.
     | Assign Lhs AssignOp Exp
     -- | Lambda expression
-    | Lambda [Ident] LambdaExpression
+    | Lambda LambdaParams LambdaExpression
     -- | Method reference
     | MethodRef Ident Ident
   DERIVE
@@ -393,6 +393,13 @@ data FieldAccess
     | ClassFieldAccess Name Ident       -- ^ Accessing a (static) field of a named class.
   DERIVE
 
+
+-- ¦ A lambda parameter can be a single parameter, or mulitple formal or mulitple inferred parameters
+data LambdaParams
+  = LambdaSingleParam Ident
+  | LambdaFormalParams [FormalParam]
+  | LambdaInferredParams [Ident]
+    DERIVE
 
 -- | Lambda expression, starting from java 8
 data LambdaExpression
