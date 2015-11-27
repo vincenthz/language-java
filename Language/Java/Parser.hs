@@ -755,19 +755,22 @@ instanceCreation = try instanceCreationNPS <|> do
      QualInstanceCreation {} -> return icp
      _ -> fail ""
 
-lambdaExp :: P Exp
-lambdaExp = do 
-  args <- (try $ parens $ seplist ident comma) <|> (list ident)
-  tok LambdaArrow
 
-  (Lambda args) <$> ((LambdaBlock <$> (try block)) <|> (LambdaExpression <$> postfixExp))
+lambdaParams :: P LambdaParams
+lambdaParams = try (LambdaSingleParam <$> ident)
+               <|> try (parens $ LambdaFormalParams <$> (seplist formalParam comma))
+               <|> (parens $ LambdaInferredParams <$> (seplist ident comma))
+
+lambdaExp :: P Exp
+lambdaExp = Lambda 
+            <$> (lambdaParams <* (tok LambdaArrow))
+            <*> ((LambdaBlock <$> (try block))
+                 <|> (LambdaExpression <$> exp))
 
 methodRef :: P Exp
-methodRef = do
-  c <- ident
-  tok MethodRefSep
-  m <- ident
-  return $ MethodRef c m
+methodRef = MethodRef 
+            <$> (ident <*  (tok MethodRefSep))
+            <*> ident
 
 {-
 instanceCreation =
