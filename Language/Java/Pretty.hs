@@ -356,7 +356,9 @@ instance Pretty Exp where
 
   prettyPrec p (Assign lhs aop e) =
     hsep [prettyPrec p lhs, prettyPrec p aop, prettyPrec p e]
-
+  
+  prettyPrec p (MethodRef i1 i2) =
+    prettyPrec p i1 <+> text "::" <+> prettyPrec p i2
 
 instance Pretty Literal where
   prettyPrec p (Int i) = text (show i)

@@ -769,7 +769,7 @@ lambdaExp = Lambda
 
 methodRef :: P Exp
 methodRef = MethodRef 
-            <$> (ident <*  (tok MethodRefSep))
+            <$> (name <*  (tok MethodRefSep))
             <*> ident
 
 {-
