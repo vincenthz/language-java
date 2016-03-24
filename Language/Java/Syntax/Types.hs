@@ -32,6 +32,11 @@ data TypeArgument
     | ActualType RefType
   deriving (Eq,Show,Typeable,Generic,Data)
 
+data TypeArgumentsOrDiamond
+    = TypeArguments [TypeArgument]
+    | Diamond
+  deriving (Eq,Show,Typeable,Generic,Data)
+
 -- | Wildcards may be given explicit bounds, either upper (@extends@) or lower (@super@) bounds.
 data WildcardBound
     = ExtendsBound RefType
