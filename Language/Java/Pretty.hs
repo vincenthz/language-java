@@ -356,9 +356,21 @@ instance Pretty Exp where
 
   prettyPrec p (Assign lhs aop e) =
     hsep [prettyPrec p lhs, prettyPrec p aop, prettyPrec p e]
-  
+
+  prettyPrec p (Lambda params body) =
+    prettyPrec p params <+> text "->" <+> prettyPrec p body
+
   prettyPrec p (MethodRef i1 i2) =
     prettyPrec p i1 <+> text "::" <+> prettyPrec p i2
+
+instance Pretty LambdaParams where
+  prettyPrec p (LambdaSingleParam ident) = prettyPrec p ident
+  prettyPrec p (LambdaFormalParams params) = ppArgs p params
+  prettyPrec p (LambdaInferredParams idents) = ppArgs p idents
+
+instance Pretty LambdaExpression where
+  prettyPrec p (LambdaExpression exp) = prettyPrec p exp
+  prettyPrec p (LambdaBlock block) = prettyPrec p block
 
 instance Pretty Literal where
   prettyPrec p (Int i) = text (show i)
