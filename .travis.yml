@@ -3,7 +3,7 @@ sudo: false
 env:
  - CABALVER=1.18 GHCVER=7.6.3
  - CABALVER=1.18 GHCVER=7.8.4
- - CABALVER=1.22 GHCVER=7.10.2
+ - CABALVER=1.22 GHCVER=7.10.3
  - CABALVER=head GHCVER=head
 
 matrix:
@@ -21,7 +21,7 @@ addons:
          - cabal-install-head
          - ghc-7.6.3
          - ghc-7.8.4
-         - ghc-7.10.2
+         - ghc-7.10.3
          - ghc-head
          - alex-3.1.4
          - happy-1.19.5
