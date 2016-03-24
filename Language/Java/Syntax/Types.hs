@@ -33,13 +33,12 @@ data TypeArgument
   deriving (Eq,Show,Typeable,Generic,Data)
 
 data TypeDeclSpecifier
-    = TypeDeclSpecifier Ident
-    | QualifiedTypeDeclSpecifier ClassType Ident
+    = TypeDeclSpecifier ClassType
+    | TypeDeclSpecifierWithDiamond ClassType Ident Diamond
+    | TypeDeclSpecifierUnqualifiedWithDiamond Ident Diamond
   deriving (Eq,Show,Typeable,Generic,Data)
 
-data TypeArgumentsOrDiamond
-    = TypeArguments [TypeArgument]
-    | Diamond
+data Diamond = Diamond
   deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | Wildcards may be given explicit bounds, either upper (@extends@) or lower (@super@) bounds.
