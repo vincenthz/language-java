@@ -732,11 +732,22 @@ instanceCreationNPS :: P Exp
 instanceCreationNPS =
     do tok KW_New
        tas <- lopt typeArgs
-       ct <- seplist ident period
+       tds <- typeDeclSpecifier
        mtaod <- opt typeArgumentsOrDiamond
        as  <- args
        mcb <- opt classBody
-       return $ InstanceCreation tas ct mtaod as mcb
+       return $ InstanceCreation tas tds mtaod as mcb
+
+typeDeclSpecifier :: P TypeDeclSpecifier
+typeDeclSpecifier =
+    (do ct <- classType
+        period
+        i <- ident
+        return $ QualifiedTypeDeclSpecifier ct i
+    ) <|>
+    (do i <- ident
+        return $ TypeDeclSpecifier i
+    )
 
 typeArgumentsOrDiamond :: P TypeArgumentsOrDiamond
 typeArgumentsOrDiamond =
@@ -1104,7 +1115,7 @@ bounds :: P [RefType]
 bounds = tok KW_Extends >> seplist1 refType (tok Op_And)
 
 typeArgs :: P [TypeArgument]
-typeArgs = angles $ seplist typeArg comma
+typeArgs = angles $ seplist1 typeArg comma
 
 typeArg :: P TypeArgument
 typeArg = tok Op_Query >> Wildcard <$> opt wildcardBound
