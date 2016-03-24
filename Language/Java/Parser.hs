@@ -732,10 +732,25 @@ instanceCreationNPS :: P Exp
 instanceCreationNPS =
     do tok KW_New
        tas <- lopt typeArgs
-       ct  <- classType
+       ct <- seplist ident period
+       mtaod <- opt typeArgumentsOrDiamond
        as  <- args
        mcb <- opt classBody
-       return $ InstanceCreation tas ct as mcb
+       return $ InstanceCreation tas ct mtaod as mcb
+
+typeArgumentsOrDiamond :: P TypeArgumentsOrDiamond
+typeArgumentsOrDiamond =
+  do
+    tok Op_LThan
+    ret <-  (do
+              tok Op_GThan
+              return Diamond)
+            <|>
+            (do
+              ta <- seplist typeArg comma
+              tok Op_GThan
+              return $ TypeArguments ta)
+    return ret
 
 instanceCreationSuffix :: P (Exp -> Exp)
 instanceCreationSuffix =

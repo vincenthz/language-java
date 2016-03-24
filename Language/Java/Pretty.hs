@@ -293,10 +293,10 @@ instance Pretty Exp where
   prettyPrec p (ThisClass name) =
     prettyPrec p name <> text ".this"
     
-  prettyPrec p (InstanceCreation tArgs ct args mBody) =
+  prettyPrec p (InstanceCreation tArgs ct mtaod args mBody) =
     hsep [text "new" 
           , ppTypeParams p tArgs 
-          , prettyPrec p ct <> ppArgs p args
+          , ((hcat . punctuate (char '.')) (map (prettyPrec p) ct)) <> maybePP p mtaod <> ppArgs p args
          ] $$ maybePP p mBody
   
   prettyPrec p (QualInstanceCreation e tArgs ident args mBody) =
@@ -483,6 +483,13 @@ instance Pretty ClassType where
 instance Pretty TypeArgument where
   prettyPrec p (ActualType rt) = prettyPrec p rt
   prettyPrec p (Wildcard mBound) = char '?' <+> maybePP p mBound
+
+instance Pretty TypeArgumentsOrDiamond where
+  prettyPrec p (TypeArguments tps) =
+    char '<' 
+    <> hsep (punctuate comma (map (prettyPrec p) tps))
+    <> char '>'
+  prettyPrec p Diamond = text "<>"
 
 instance Pretty WildcardBound where
   prettyPrec p (ExtendsBound rt) = text "extends" <+> prettyPrec p rt
