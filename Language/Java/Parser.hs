@@ -733,35 +733,27 @@ instanceCreationNPS =
     do tok KW_New
        tas <- lopt typeArgs
        tds <- typeDeclSpecifier
-       mtaod <- opt typeArgumentsOrDiamond
        as  <- args
        mcb <- opt classBody
-       return $ InstanceCreation tas tds mtaod as mcb
+       return $ InstanceCreation tas tds as mcb
 
 typeDeclSpecifier :: P TypeDeclSpecifier
 typeDeclSpecifier =
-    (do ct <- classType
-        period
-        i <- ident
-        return $ QualifiedTypeDeclSpecifier ct i
+    (try $ do ct <- classType
+              period
+              i <- ident
+              tok Op_LThan
+              tok Op_GThan
+              return $ TypeDeclSpecifierWithDiamond ct i Diamond
     ) <|>
-    (do i <- ident
-        return $ TypeDeclSpecifier i
+    (try $ do i <- ident
+              tok Op_LThan
+              tok Op_GThan
+              return $ TypeDeclSpecifierUnqualifiedWithDiamond i Diamond
+    ) <|>
+    (do ct <- classType
+        return $ TypeDeclSpecifier ct
     )
-
-typeArgumentsOrDiamond :: P TypeArgumentsOrDiamond
-typeArgumentsOrDiamond =
-  do
-    tok Op_LThan
-    ret <-  (do
-              tok Op_GThan
-              return Diamond)
-            <|>
-            (do
-              ta <- seplist typeArg comma
-              tok Op_GThan
-              return $ TypeArguments ta)
-    return ret
 
 instanceCreationSuffix :: P (Exp -> Exp)
 instanceCreationSuffix =
