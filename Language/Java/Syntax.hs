@@ -346,7 +346,7 @@ data Exp
     -- | Lambda expression
     | Lambda LambdaParams LambdaExpression
     -- | Method reference
-    | MethodRef Ident Ident
+    | MethodRef Name Ident
   DERIVE
 
 -- | A literal denotes a fixed, unchanging value.
