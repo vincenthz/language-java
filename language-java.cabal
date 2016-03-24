@@ -39,7 +39,8 @@ Library
                         Language.Java.Parser,
                         Language.Java.Pretty
   
-  Other-modules:	
+  Other-modules:	    Language.Java.Syntax.Types
+                        Language.Java.Syntax.Exp
 
 Test-Suite test-java-parse
   type:              exitcode-stdio-1.0
