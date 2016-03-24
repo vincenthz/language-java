@@ -126,7 +126,7 @@ instance Pretty MemberDecl where
 instance Pretty VarDecl where
   prettyPrec p (VarDecl vdId Nothing) = prettyPrec p vdId
   prettyPrec p (VarDecl vdId (Just ie)) =
-	(prettyPrec p vdId <+> char '=') <+> prettyPrec p ie
+    (prettyPrec p vdId <+> char '=') <+> prettyPrec p ie
 
 instance Pretty VarDeclId where
   prettyPrec p (VarId ident) = prettyPrec p ident
@@ -135,7 +135,7 @@ instance Pretty VarDeclId where
 instance Pretty VarInit where
   prettyPrec p (InitExp e) = prettyPrec p e
   prettyPrec p (InitArray (ArrayInit ai)) =
-	text "{" <+> hsep (punctuate comma (map (prettyPrec p) ai)) <+> text "}"
+    text "{" <+> hsep (punctuate comma (map (prettyPrec p) ai)) <+> text "}"
 
 instance Pretty FormalParam where
   prettyPrec p (FormalParam mods t b vId) =
