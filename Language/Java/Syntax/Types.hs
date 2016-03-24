@@ -32,6 +32,11 @@ data TypeArgument
     | ActualType RefType
   deriving (Eq,Show,Typeable,Generic,Data)
 
+data TypeDeclSpecifier
+    = TypeDeclSpecifier Ident
+    | QualifiedTypeDeclSpecifier ClassType Ident
+  deriving (Eq,Show,Typeable,Generic,Data)
+
 data TypeArgumentsOrDiamond
     = TypeArguments [TypeArgument]
     | Diamond
