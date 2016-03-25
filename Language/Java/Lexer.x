@@ -5,8 +5,6 @@ module Language.Java.Lexer (L(..), Token(..), lexer) where
 
 import Numeric
 import Data.Char
-
-import Debug.Trace (trace)
 }
 
 %wrapper "posn"
@@ -175,17 +173,18 @@ tokens  :-
 
 pickyReadOct :: String -> Integer
 pickyReadOct s =
-  if not $ null rem
-  then lexicalError $ "Non-octal digit '" ++ take 1 rem ++ "' in \"" ++ s ++ "\"."
+  if not $ null remStr
+  then lexicalError $ "Non-octal digit '" ++ take 1 remStr ++ "' in \"" ++ s ++ "\"."
   else n
-    where (n,rem) = head $ readOct s
+    where (n,remStr) = head $ readOct s
 
 readHexExp :: (Floating a, Eq a) => String -> a
-readHexExp s = let (m, suf) = head $ readHex s
-                   (e, _) = case suf of
-                             p:s | toLower p == 'p' -> head $ readHex s
-                             _ -> (0, "")
-                in m ** e
+readHexExp initial =
+    let (m, suf) = head $ readHex initial
+        (e, _) = case suf of
+                      p:s | toLower p == 'p' -> head $ readHex s
+                      _                      -> (0, "")
+     in m ** e
 
 readCharTok :: String -> Char
 readCharTok s = head . convChar . dropQuotes $ s
