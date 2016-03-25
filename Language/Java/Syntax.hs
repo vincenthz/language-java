@@ -426,7 +426,7 @@ data LambdaExpression
     = LambdaExpression Exp
     | LambdaBlock Block
   deriving (Eq,Show,Typeable,Generic,Data)
-    
+
 
 -- | A method invocation expression is used to invoke a class or instance method.
 data MethodInvocation
@@ -447,4 +447,3 @@ data MethodInvocation
 data ArrayInit
     = ArrayInit [VarInit]
   deriving (Eq,Show,Typeable,Generic,Data)
-
