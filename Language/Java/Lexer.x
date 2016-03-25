@@ -1,5 +1,6 @@
 {
 {-# LANGUAGE BangPatterns #-}
+{-# OPTIONS_GHC -fno-warn-tabs -fno-warn-unused-binds #-}
 module Language.Java.Lexer (L(..), Token(..), lexer) where
 
 import Numeric
