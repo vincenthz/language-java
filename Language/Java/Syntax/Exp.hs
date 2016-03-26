@@ -4,8 +4,6 @@ module Language.Java.Syntax.Exp where
 import Data.Data
 import GHC.Generics (Generic)
 
-import Language.Java.Syntax.Types
-
 -- | A literal denotes a fixed, unchanging value.
 data Literal
     = Int Integer
