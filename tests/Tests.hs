@@ -1,13 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import Test.Framework (defaultMain, testGroup)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.Framework.Providers.HUnit (testCase)
-import Test.HUnit (assertBool)
-
-import Test.QuickCheck
-import Test.QuickCheck.Test
+import Test.Tasty
+import Test.Tasty.QuickCheck
+import Test.Tasty.HUnit
 
 import System.Directory
 import System.FilePath
@@ -65,7 +61,7 @@ main = do
     allGoodJavas <- getAllJavaPaths (testJavaDirectory </> "good")
     allBadJavas <- getAllJavaPaths (testJavaDirectory </> "bad")
 
-    defaultMain
+    defaultMain $ testGroup "java"
         [ testGroup "parsing unit good" (map (toTestCase True) allGoodJavas)
         , testGroup "parsing unit bad" (map (toTestCase False) allBadJavas)
         , testProperty "parsing.generating==id" (\g -> case parser compilationUnit (show $ pretty g) of

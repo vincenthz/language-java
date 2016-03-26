@@ -48,11 +48,9 @@ Test-Suite test-java-parse
   Main-is:           Tests.hs
   Build-Depends:     base >= 3 && < 5
                    , mtl
-                   , QuickCheck >= 2
-                   , HUnit
-                   , test-framework
-                   , test-framework-quickcheck2
-                   , test-framework-hunit
+                   , tasty
+                   , tasty-quickcheck
+                   , tasty-hunit
                    , language-java
                    , filepath
                    , directory
