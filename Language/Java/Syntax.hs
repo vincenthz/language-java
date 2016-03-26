@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 module Language.Java.Syntax
     ( CompilationUnit(..)
     , PackageDecl(..)
@@ -51,20 +51,18 @@ import GHC.Generics (Generic)
 import Language.Java.Syntax.Types
 import Language.Java.Syntax.Exp
 
-#define DERIVE deriving (Eq,Show,Typeable,Generic,Data)
-
 -----------------------------------------------------------------------
 -- Packages
 
 
 -- | A compilation unit is the top level syntactic goal symbol of a Java program.
 data CompilationUnit = CompilationUnit (Maybe PackageDecl) [ImportDecl] [TypeDecl]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 -- | A package declaration appears within a compilation unit to indicate the package to which the compilation unit belongs.
 newtype PackageDecl = PackageDecl Name
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | An import declaration allows a static member or a named type to be referred to by a single unqualified identifier.
 --   The first argument signals whether the declaration only imports static members.
@@ -72,7 +70,7 @@ newtype PackageDecl = PackageDecl Name
 --   a single name into scope.
 data ImportDecl
     = ImportDecl Bool {- static? -} Name Bool {- .*? -}
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 -----------------------------------------------------------------------
@@ -82,28 +80,28 @@ data ImportDecl
 data TypeDecl
     = ClassTypeDecl ClassDecl
     | InterfaceTypeDecl InterfaceDecl
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A class declaration specifies a new named reference type.
 data ClassDecl
     = ClassDecl [Modifier] Ident [TypeParam] (Maybe RefType) [RefType] ClassBody
     | EnumDecl  [Modifier] Ident                             [RefType] EnumBody
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A class body may contain declarations of members of the class, that is,
 --   fields, classes, interfaces and methods.
 --   A class body may also contain instance initializers, static
 --   initializers, and declarations of constructors for the class.
 newtype ClassBody = ClassBody [Decl]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | The body of an enum type may contain enum constants.
 data EnumBody = EnumBody [EnumConstant] [Decl]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | An enum constant defines an instance of the enum type.
 data EnumConstant = EnumConstant Ident [Argument] (Maybe ClassBody)
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | An interface declaration introduces a new reference type whose members
 --   are classes, interfaces, constants and abstract methods. This type has
@@ -111,19 +109,19 @@ data EnumConstant = EnumConstant Ident [Argument] (Maybe ClassBody)
 --   providing implementations for its abstract methods.
 data InterfaceDecl
     = InterfaceDecl [Modifier] Ident [TypeParam] [RefType] InterfaceBody
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | The body of an interface may declare members of the interface.
 newtype InterfaceBody
     = InterfaceBody [MemberDecl]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A declaration is either a member declaration, or a declaration of an
 --   initializer, which may be static.
 data Decl
     = MemberDecl MemberDecl
     | InitDecl Bool Block
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 -- | A class or interface member can be an inner class or interface, a field or
@@ -140,42 +138,42 @@ data MemberDecl
     | MemberClassDecl ClassDecl
     -- | A member interface is an interface whose declaration is directly enclosed in another class or interface declaration.
     | MemberInterfaceDecl InterfaceDecl
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 -- | A declaration of a variable, which may be explicitly initialized.
 data VarDecl
     = VarDecl VarDeclId (Maybe VarInit)
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | The name of a variable in a declaration, which may be an array.
 data VarDeclId
     = VarId Ident
     | VarDeclArray VarDeclId
     -- ^ Multi-dimensional arrays are represented by nested applications of 'VarDeclArray'.
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | Explicit initializer for a variable declaration.
 data VarInit
     = InitExp Exp
     | InitArray ArrayInit
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A formal parameter in method declaration. The last parameter
 --   for a given declaration may be marked as variable arity,
 --   indicated by the boolean argument.
 data FormalParam = FormalParam [Modifier] Type Bool VarDeclId
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A method body is either a block of code that implements the method or simply a
 --   semicolon, indicating the lack of an implementation (modelled by 'Nothing').
 newtype MethodBody = MethodBody (Maybe Block)
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | The first statement of a constructor body may be an explicit invocation of
 --   another constructor of the same class or of the direct superclass.
 data ConstructorBody = ConstructorBody (Maybe ExplConstrInv) [BlockStmt]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | An explicit constructor invocation invokes another constructor of the
 --   same class, or a constructor of the direct superclass, which may
@@ -185,7 +183,7 @@ data ExplConstrInv
     = ThisInvoke             [RefType] [Argument]
     | SuperInvoke            [RefType] [Argument]
     | PrimarySuperInvoke Exp [RefType] [Argument]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 -- | A modifier specifying properties of a given declaration. In general only
@@ -204,7 +202,7 @@ data Modifier
     | Native
     | Annotation Annotation
     | Synchronised
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
 data Annotation = NormalAnnotation        { annName :: Name -- Not type because not type generics not allowed
@@ -212,7 +210,7 @@ data Annotation = NormalAnnotation        { annName :: Name -- Not type because 
                 | SingleElementAnnotation { annName :: Name
                                           , annValue:: ElementValue }
                 | MarkerAnnotation        { annName :: Name }
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 desugarAnnotation (MarkerAnnotation n)          = (n, [])
 desugarAnnotation (SingleElementAnnotation n e) = (n, [(Ident "value", e)])
@@ -222,7 +220,7 @@ desugarAnnotation' = uncurry NormalAnnotation . desugarAnnotation
 -- | Annotations may contain  annotations or (loosely) expressions
 data ElementValue = EVVal VarInit
                   | EVAnn Annotation
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -----------------------------------------------------------------------
 -- Statements
@@ -230,7 +228,7 @@ data ElementValue = EVVal VarInit
 -- | A block is a sequence of statements, local class declarations
 --   and local variable declaration statements within braces.
 data Block = Block [BlockStmt]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 
@@ -240,7 +238,7 @@ data BlockStmt
     = BlockStmt Stmt
     | LocalClass ClassDecl
     | LocalVars [Modifier] Type [VarDecl]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 
 -- | A Java statement.
@@ -290,30 +288,30 @@ data Stmt
     | Try Block [Catch] (Maybe {- finally -} Block)
     -- | Statements may have label prefixes.
     | Labeled Ident Stmt
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | If a value is thrown and the try statement has one or more catch clauses that can catch it, then control will be
 --   transferred to the first such catch clause.
 data Catch = Catch FormalParam Block
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A block of code labelled with a @case@ or @default@ within a @switch@ statement.
 data SwitchBlock
     = SwitchBlock SwitchLabel [BlockStmt]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | A label within a @switch@ statement.
 data SwitchLabel
     -- | The expression contained in the @case@ must be a 'Lit' or an @enum@ constant.
     = SwitchCase Exp
     | Default
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | Initialization code for a basic @for@ statement.
 data ForInit
     = ForLocalVars [Modifier] Type [VarDecl]
     | ForInitExps [Exp]
-  DERIVE
+  deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | An exception type has to be a class type or a type variable.
 type ExceptionType = RefType -- restricted to ClassType or TypeVariable
