@@ -732,10 +732,28 @@ instanceCreationNPS :: P Exp
 instanceCreationNPS =
     do tok KW_New
        tas <- lopt typeArgs
-       ct  <- classType
+       tds <- typeDeclSpecifier
        as  <- args
        mcb <- opt classBody
-       return $ InstanceCreation tas ct as mcb
+       return $ InstanceCreation tas tds as mcb
+
+typeDeclSpecifier :: P TypeDeclSpecifier
+typeDeclSpecifier =
+    (try $ do ct <- classType
+              period
+              i <- ident
+              tok Op_LThan
+              tok Op_GThan
+              return $ TypeDeclSpecifierWithDiamond ct i Diamond
+    ) <|>
+    (try $ do i <- ident
+              tok Op_LThan
+              tok Op_GThan
+              return $ TypeDeclSpecifierUnqualifiedWithDiamond i Diamond
+    ) <|>
+    (do ct <- classType
+        return $ TypeDeclSpecifier ct
+    )
 
 instanceCreationSuffix :: P (Exp -> Exp)
 instanceCreationSuffix =
@@ -1089,7 +1107,7 @@ bounds :: P [RefType]
 bounds = tok KW_Extends >> seplist1 refType (tok Op_And)
 
 typeArgs :: P [TypeArgument]
-typeArgs = angles $ seplist typeArg comma
+typeArgs = angles $ seplist1 typeArg comma
 
 typeArg :: P TypeArgument
 typeArg = tok Op_Query >> Wildcard <$> opt wildcardBound

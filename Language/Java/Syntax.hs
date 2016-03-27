@@ -335,7 +335,7 @@ data Exp
     -- | The first argument is a list of non-wildcard type arguments to a generic constructor.
     --   What follows is the type to be instantiated, the list of arguments passed to the constructor, and
     --   optionally a class body that makes the constructor result in an object of an /anonymous/ class.
-    | InstanceCreation [TypeArgument] ClassType [Argument] (Maybe ClassBody)
+    | InstanceCreation [TypeArgument] TypeDeclSpecifier [Argument] (Maybe ClassBody)
     -- | A qualified class instance creation expression enables the creation of instances of inner member classes
     --   and their anonymous subclasses.
     | QualInstanceCreation Exp [TypeArgument] Ident [Argument] (Maybe ClassBody)
