@@ -5,8 +5,8 @@ License-File:           LICENSE
 Author:                 Niklas Broberg
 Maintainer:             Vincent Hanquez <vincent@snarc.org>
 Category:               Language
-Synopsis:               Manipulating Java source: abstract syntax, lexer, parser, and pretty-printer
-Description:            Java source manipulation.
+Synopsis:               Java source manipulation
+Description:            Manipulating Java source: abstract syntax, lexer, parser, and pretty-printer.
 Homepage:               http://github.com/vincenthz/language-java
 Stability:              Experimental
 Build-Type:             Simple
