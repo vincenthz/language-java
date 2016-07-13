@@ -38,6 +38,7 @@ tokens  :-
     $white+         ;
     @comm           ;
 
+    "@interface"    { \p _ -> L (pos p) $ KW_AnnInterface }
     abstract        { \p _ -> L (pos p) $ KW_Abstract     }
     assert          { \p _ -> L (pos p) $ KW_Assert       }
     boolean         { \p _ -> L (pos p) $ KW_Boolean      }
@@ -252,6 +253,7 @@ pos (AlexPn _ l c) = (l,c)
 data Token
     -- Keywords
     = KW_Abstract
+    | KW_AnnInterface
     | KW_Assert
     | KW_Boolean
     | KW_Break
