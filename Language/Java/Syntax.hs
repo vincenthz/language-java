@@ -206,8 +206,8 @@ data Modifier
     | Volatile
     | Native
     | Annotation Annotation
-    | Synchronised
-  deriving (Eq,Show,Typeable,Generic,Data)
+    | Synchronized
+  deriving (Eq,Show,Read,Typeable,Generic,Data)
 
 -- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
 data Annotation = NormalAnnotation        { annName :: Name -- Not type because not type generics not allowed
