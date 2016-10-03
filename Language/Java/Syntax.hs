@@ -201,7 +201,7 @@ data Modifier
     | Volatile
     | Native
     | Annotation Annotation
-    | Synchronised
+    | Synchronized
   deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
