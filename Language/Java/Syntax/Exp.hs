@@ -14,15 +14,15 @@ data Literal
     | Char Char
     | String String
     | Null
-  deriving (Eq,Show,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data)
 
 -- | A binary infix operator.
 data Op = Mult | Div | Rem | Add | Sub | LShift | RShift | RRShift
         | LThan | GThan | LThanE | GThanE | Equal | NotEq
         | And | Or | Xor | CAnd | COr
-  deriving (Eq,Show,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data)
 
 -- | An assignment operator.
 data AssignOp = EqualA | MultA | DivA | RemA | AddA | SubA
               | LShiftA | RShiftA | RRShiftA | AndA | XorA | OrA
-  deriving (Eq,Show,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data)
