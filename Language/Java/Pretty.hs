@@ -82,9 +82,9 @@ instance Pretty EnumConstant where
       $$ maybePP p mBody
 
 instance Pretty InterfaceDecl where
-  prettyPrec p (InterfaceDecl mods ident tParams impls body) =
+  prettyPrec p (InterfaceDecl kind mods ident tParams impls body) =
     hsep [hsep (map (prettyPrec p) mods)
-          , text "interface"
+          , text (if kind == InterfaceNormal then "interface" else "@interface")
           , prettyPrec p ident
           , ppTypeParams p tParams
           , ppImplements p impls
@@ -103,13 +103,14 @@ instance Pretty MemberDecl where
   prettyPrec p (FieldDecl mods t vds) =
     hsep (map (prettyPrec p) mods ++ prettyPrec p t:punctuate (text ",") (map (prettyPrec p) vds)) <> semi
 
-  prettyPrec p (MethodDecl mods tParams mt ident fParams throws body) =
+  prettyPrec p (MethodDecl mods tParams mt ident fParams throws def body) =
     hsep [hsep (map (prettyPrec p) mods)
           , ppTypeParams p tParams
           , ppResultType p mt
           , prettyPrec p ident
           , ppArgs p fParams
           , ppThrows p throws
+          , ppDefault p def
          ] $$ prettyPrec p body
 
   prettyPrec p (ConstructorDecl mods tParams ident fParams throws body) =
@@ -533,6 +534,10 @@ ppThrows :: Int -> [ExceptionType] -> Doc
 ppThrows _ [] = empty
 ppThrows p ets = text "throws" 
     <+> hsep (punctuate comma (map (prettyPrec p) ets))
+
+ppDefault :: Int -> Maybe Exp -> Doc
+ppDefault _ Nothing = empty
+ppDefault p (Just exp) = text "default" <+> prettyPrec p exp
 
 ppResultType :: Int -> Maybe Type -> Doc
 ppResultType _ Nothing = text "void"

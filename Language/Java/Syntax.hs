@@ -10,6 +10,7 @@ module Language.Java.Syntax
     , EnumConstant(..)
     , InterfaceDecl(..)
     , InterfaceBody(..)
+    , InterfaceKind(..)
     , Decl(..)
     , MemberDecl(..)
     , VarDecl(..)
@@ -108,7 +109,11 @@ data EnumConstant = EnumConstant Ident [Argument] (Maybe ClassBody)
 --   no implementation, but otherwise unrelated classes can implement it by
 --   providing implementations for its abstract methods.
 data InterfaceDecl
-    = InterfaceDecl [Modifier] Ident [TypeParam] [RefType] InterfaceBody
+    = InterfaceDecl InterfaceKind [Modifier] Ident [TypeParam] [RefType] InterfaceBody
+  deriving (Eq,Show,Typeable,Generic,Data)
+
+-- | Interface can declare either a normal interface or an annotation
+data InterfaceKind = InterfaceNormal | InterfaceAnnotation
   deriving (Eq,Show,Typeable,Generic,Data)
 
 -- | The body of an interface may declare members of the interface.
@@ -131,7 +136,7 @@ data MemberDecl
     -- | The variables of a class type are introduced by field declarations.
     = FieldDecl [Modifier] Type [VarDecl]
     -- | A method declares executable code that can be invoked, passing a fixed number of values as arguments.
-    | MethodDecl      [Modifier] [TypeParam] (Maybe Type) Ident [FormalParam] [ExceptionType] MethodBody
+    | MethodDecl      [Modifier] [TypeParam] (Maybe Type) Ident [FormalParam] [ExceptionType] (Maybe Exp) MethodBody
     -- | A constructor is used in the creation of an object that is an instance of a class.
     | ConstructorDecl [Modifier] [TypeParam]              Ident [FormalParam] [ExceptionType] ConstructorBody
     -- | A member class is a class whose declaration is directly enclosed in another class or interface declaration.

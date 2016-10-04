@@ -120,7 +120,7 @@ classOrInterfaceDecl = do
     ms <- list modifier
     de <- (do cd <- classDecl
               return $ \ms -> ClassTypeDecl (cd ms)) <|>
-          (do id <- interfaceDecl
+          (do id <- annInterfaceDecl <|> interfaceDecl
               return $ \ms -> InterfaceTypeDecl (id ms))
     return $ de ms
 
@@ -176,6 +176,15 @@ classBodyStatements = catMaybes <$> list classBodyStatement
 
 -- Interface declarations
 
+annInterfaceDecl :: P (Mod InterfaceDecl)
+annInterfaceDecl = do
+    tok KW_AnnInterface
+    id  <- ident
+    tps <- lopt typeParams
+    exs <- lopt extends
+    bod <- interfaceBody
+    return $ \ms -> InterfaceDecl InterfaceAnnotation ms id tps exs bod
+
 interfaceDecl :: P (Mod InterfaceDecl)
 interfaceDecl = do
     tok KW_Interface
@@ -183,7 +192,7 @@ interfaceDecl = do
     tps <- lopt typeParams
     exs <- lopt extends
     bod <- interfaceBody
-    return $ \ms -> InterfaceDecl ms id tps exs bod
+    return $ \ms -> InterfaceDecl InterfaceNormal ms id tps exs bod
 
 interfaceBody :: P InterfaceBody
 interfaceBody = InterfaceBody . catMaybes <$>
@@ -210,8 +219,9 @@ memberDecl =
         cd  <- classDecl
         return $ \ms -> MemberClassDecl (cd ms)) <|>
     (try $ do
-        id  <- interfaceDecl
+        id  <- try annInterfaceDecl <|> try interfaceDecl
         return $ \ms -> MemberInterfaceDecl (id ms)) <|>
+
     try fieldDecl <|>
     try methodDecl <|>
     constrDecl
@@ -230,11 +240,12 @@ methodDecl = do
     fps <- formalParams
     thr <- lopt throws
     bod <- methodBody
-    return $ \ms -> MethodDecl ms tps rt id fps thr bod
+    return $ \ms -> MethodDecl ms tps rt id fps thr Nothing bod
 
 methodBody :: P MethodBody
 methodBody = MethodBody <$>
     (const Nothing <$> semiColon <|> Just <$> block)
+
 
 constrDecl :: P (Mod MemberDecl)
 constrDecl = do
@@ -282,7 +293,7 @@ interfaceMemberDecl :: P (Mod MemberDecl)
 interfaceMemberDecl =
     (do cd  <- classDecl
         return $ \ms -> MemberClassDecl (cd ms)) <|>
-    (do id  <- interfaceDecl
+    (do id  <- try annInterfaceDecl <|> try interfaceDecl
         return $ \ms -> MemberInterfaceDecl (id ms)) <|>
     try fieldDecl <|>
     absMethodDecl
@@ -294,8 +305,12 @@ absMethodDecl = do
     id  <- ident
     fps <- formalParams
     thr <- lopt throws
+    def <- opt defaultValue
     semiColon
-    return $ \ms -> MethodDecl ms tps rt id fps thr (MethodBody Nothing)
+    return $ \ms -> MethodDecl ms tps rt id fps thr def (MethodBody Nothing)
+
+defaultValue :: P Exp
+defaultValue = tok KW_Default >> exp
 
 throws :: P [RefType]
 throws = tok KW_Throws >> refTypeList
