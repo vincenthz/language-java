@@ -678,6 +678,10 @@ infixExp = do
 
 infixExpSuffix :: P (Exp -> Exp)
 infixExpSuffix =
+    (do
+      op <- infixCombineOp
+      ie2 <- infixExp
+      return $ \ie1 -> BinOp ie1 op ie2) <|>
     (do op <- infixOp
         e2 <- unaryExp
         return $ \e1 -> BinOp e1 op e2) <|>
@@ -1027,6 +1031,15 @@ assignOp =
     (tok Op_CaretE   >> return XorA     ) <|>
     (tok Op_OrE      >> return OrA      )
 
+infixCombineOp :: P Op
+infixCombineOp = 
+    (tok Op_And     >> return And       ) <|>
+    (tok Op_Caret   >> return Xor       ) <|>
+    (tok Op_Or      >> return Or        ) <|>
+    (tok Op_AAnd    >> return CAnd      ) <|>
+    (tok Op_OOr     >> return COr       )
+
+
 infixOp :: P Op
 infixOp =
     (tok Op_Star    >> return Mult      ) <|>
@@ -1051,12 +1064,7 @@ infixOp =
     (tok Op_LThanE  >> return LThanE    ) <|>
     (tok Op_GThanE  >> return GThanE    ) <|>
     (tok Op_Equals  >> return Equal     ) <|>
-    (tok Op_BangE   >> return NotEq     ) <|>
-    (tok Op_And     >> return And       ) <|>
-    (tok Op_Caret   >> return Xor       ) <|>
-    (tok Op_Or      >> return Or        ) <|>
-    (tok Op_AAnd    >> return CAnd      ) <|>
-    (tok Op_OOr     >> return COr       )
+    (tok Op_BangE   >> return NotEq     )
 
 
 ----------------------------------------------------------------------------
