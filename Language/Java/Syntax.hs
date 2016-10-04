@@ -206,8 +206,22 @@ data Modifier
     | Volatile
     | Native
     | Annotation Annotation
-    | Synchronized
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+    | Synchronized_
+  deriving (Eq,Read,Typeable,Generic,Data)
+
+instance Show Modifier where
+   show Public = "public" 
+   show Private = "private"
+   show Protected = "protected"
+   show Abstract = "abstract"
+   show Final = "final"
+   show Static = "static"
+   show StrictFP = "strictfp"
+   show Transient = "transient"
+   show Volatile = "volatile"
+   show Native = "native"
+   show (Annotation a) = show a
+   show Synchronized_ = "synchronized"
 
 -- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
 data Annotation = NormalAnnotation        { annName :: Name -- Not type because not type generics not allowed
