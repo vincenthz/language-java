@@ -87,7 +87,7 @@ instance Pretty InterfaceDecl where
           , text (if kind == InterfaceNormal then "interface" else "@interface")
           , prettyPrec p ident
           , ppTypeParams p tParams
-          , ppImplements p impls
+          , ppExtends p impls
          ] $$ prettyPrec p body
 
 instance Pretty InterfaceBody where
