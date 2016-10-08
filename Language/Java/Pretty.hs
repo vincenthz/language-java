@@ -131,7 +131,7 @@ instance Pretty VarDecl where
 
 instance Pretty VarDeclId where
   prettyPrec p (VarId ident) = prettyPrec p ident
-  prettyPrec p (VarDeclArray vId) = prettyPrec p vId
+  prettyPrec p (VarDeclArray vId) = prettyPrec p vId <> text "[]"
 
 instance Pretty VarInit where
   prettyPrec p (InitExp e) = prettyPrec p e
