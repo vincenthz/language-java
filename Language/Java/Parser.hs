@@ -1086,10 +1086,6 @@ infixOp =
        tok Op_GThan
        return RShift    ) <|>
            
-    (tok Op_GThan   >> return GThan     ) <|>                                          
-    (tok Op_LThanE  >> return LThanE    ) <|>
-    (tok Op_GThanE  >> return GThanE    ) <|>
-    (tok Op_Equals  >> return Equal     ) <|>
     (tok Op_BangE   >> return NotEq     )
 
 
