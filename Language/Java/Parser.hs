@@ -658,7 +658,7 @@ assignExp = try methodRef <|> try lambdaExp <|> try assignment <|> condExp
 
 condExp :: P Exp
 condExp = do
-    ie <- infixExp
+    ie <- infixCombineExp
     ces <- list condExpSuffix
     return $ foldl (\a s -> s a) ie ces
 
@@ -670,6 +670,30 @@ condExpSuffix = do
     el <- condExp
     return $ \ce -> Cond ce th el
 
+infixCombineExp :: P Exp
+infixCombineExp = do
+    ice <- infixCompareExp
+    ices <- list infixCombineExpSuffix
+    return $ foldl (\a s -> s a) ice ices
+
+infixCombineExpSuffix :: P (Exp -> Exp)
+infixCombineExpSuffix = do 
+    op <- infixCombineOp
+    ice2 <- infixCompareExp
+    return $ \ice1 -> BinOp ice1 op ice2
+    
+infixCompareExp :: P Exp 
+infixCompareExp = do 
+    ice <- infixExp
+    ices <- list infixCompareExpSuffix
+    return $ foldl (\a s -> s a) ice ices
+
+infixCompareExpSuffix :: P (Exp -> Exp)
+infixCompareExpSuffix = do 
+    op <- infixCompareOp
+    ice2 <- infixExp
+    return $ \ice1 -> BinOp ice1 op ice2
+
 infixExp :: P Exp
 infixExp = do
     ue <- unaryExp
@@ -678,10 +702,6 @@ infixExp = do
 
 infixExpSuffix :: P (Exp -> Exp)
 infixExpSuffix =
-    (do
-      op <- infixCombineOp
-      ie2 <- infixExp
-      return $ \ie1 -> BinOp ie1 op ie2) <|>
     (do op <- infixOp
         e2 <- unaryExp
         return $ \e1 -> BinOp e1 op e2) <|>
@@ -1039,6 +1059,13 @@ infixCombineOp =
     (tok Op_AAnd    >> return CAnd      ) <|>
     (tok Op_OOr     >> return COr       )
 
+infixCompareOp :: P Op 
+infixCompareOp = 
+    (tok Op_LThan   >> return LThan     ) <|>
+    (tok Op_GThan   >> return GThan     ) <|>                                          
+    (tok Op_LThanE  >> return LThanE    ) <|>
+    (tok Op_GThanE  >> return GThanE    ) <|>
+    (tok Op_Equals  >> return Equal     )
 
 infixOp :: P Op
 infixOp =
@@ -1048,7 +1075,6 @@ infixOp =
     (tok Op_Plus    >> return Add       ) <|>
     (tok Op_Minus   >> return Sub       ) <|>
     (tok Op_LShift  >> return LShift    ) <|>
-    (tok Op_LThan   >> return LThan     ) <|>
     (try $ do
        tok Op_GThan   
        tok Op_GThan   
