@@ -18,3 +18,18 @@ Simple compilation unit parser:
 or from a file:
 
     ast <- parser compilationUnit `fmap` readFile "myClass.java"
+
+
+Build and Test
+--------------
+
+First time:
+
+    sudo apt-get install alex cabal-install
+    cabal update
+    cabal install --run-tests
+    cabal test
+
+Next time:
+
+    cabal test
