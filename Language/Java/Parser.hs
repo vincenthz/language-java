@@ -671,20 +671,23 @@ condExpSuffix = do
     return $ \ce -> Cond ce th el
 
 infixExp :: P Exp
-infixExp = do
-    ue <- unaryExp
-    ies <- list infixExpSuffix
+infixExp = infixExpWithOperators infixOperators
+
+-- See Note [Parsing operators]
+infixExpWithOperators :: [P Op] -> P Exp
+infixExpWithOperators [] = unaryExp
+infixExpWithOperators (op : ops) = do
+    ue <- infixExpWithOperators ops
+    ies <- list (infixExpSuffix op ops)
     return $ foldl (\a s -> s a) ue ies
 
-infixExpSuffix :: P (Exp -> Exp)
-infixExpSuffix =
-    (do
-      op <- infixCombineOp
-      ie2 <- infixExp
-      return $ \ie1 -> BinOp ie1 op ie2) <|>
+infixExpSuffix :: P Op -> [P Op] -> P (Exp -> Exp)
+infixExpSuffix infixOp ops =
     (do op <- infixOp
-        e2 <- unaryExp
+        e2 <- infixExpWithOperators ops
         return $ \e1 -> BinOp e1 op e2) <|>
+
+    -- FIXME 'instanceof' should have the same precedence as relational operators
     (do tok KW_Instanceof
         t  <- refType
         return $ \e1 -> InstanceOf e1 t)
@@ -1031,24 +1034,29 @@ assignOp =
     (tok Op_CaretE   >> return XorA     ) <|>
     (tok Op_OrE      >> return OrA      )
 
-infixCombineOp :: P Op
-infixCombineOp = 
-    (tok Op_And     >> return And       ) <|>
-    (tok Op_Caret   >> return Xor       ) <|>
-    (tok Op_Or      >> return Or        ) <|>
-    (tok Op_AAnd    >> return CAnd      ) <|>
-    (tok Op_OOr     >> return COr       )
+-- The infix operators, grouped by precedence.
+-- See Note [Parsing operators]
+infixOperators :: [P Op]
+infixOperators =
+  [ (tok Op_OOr     >> return COr       )
 
+  , (tok Op_AAnd    >> return CAnd      )
 
-infixOp :: P Op
-infixOp =
-    (tok Op_Star    >> return Mult      ) <|>
-    (tok Op_Slash   >> return Div       ) <|>
-    (tok Op_Percent >> return Rem       ) <|>
-    (tok Op_Plus    >> return Add       ) <|>
-    (tok Op_Minus   >> return Sub       ) <|>
-    (tok Op_LShift  >> return LShift    ) <|>
-    (tok Op_LThan   >> return LThan     ) <|>
+  , (tok Op_Or      >> return Or        )
+
+  , (tok Op_Caret   >> return Xor       )
+
+  , (tok Op_And     >> return And       )
+  
+  , (tok Op_Equals  >> return Equal     ) <|>
+    (tok Op_BangE   >> return NotEq     )
+
+  , (tok Op_LThan   >> return LThan     ) <|>
+    (tok Op_GThan   >> return GThan     ) <|>                                          
+    (tok Op_LThanE  >> return LThanE    ) <|>
+    (tok Op_GThanE  >> return GThanE    )
+
+  , (tok Op_LShift  >> return LShift    ) <|>
     (try $ do
        tok Op_GThan   
        tok Op_GThan   
@@ -1058,14 +1066,36 @@ infixOp =
     (try $ do
        tok Op_GThan 
        tok Op_GThan
-       return RShift    ) <|>
-           
-    (tok Op_GThan   >> return GThan     ) <|>                                          
-    (tok Op_LThanE  >> return LThanE    ) <|>
-    (tok Op_GThanE  >> return GThanE    ) <|>
-    (tok Op_Equals  >> return Equal     ) <|>
-    (tok Op_BangE   >> return NotEq     )
+       return RShift    )
 
+  , (tok Op_Plus    >> return Add       ) <|>
+    (tok Op_Minus   >> return Sub       )
+
+  , (tok Op_Star    >> return Mult      ) <|>
+    (tok Op_Slash   >> return Div       ) <|>
+    (tok Op_Percent >> return Rem       )
+  ]
+
+{-
+Note [Parsing operators]
+~~~~~~~~~~~~~~~~~~~~~~~~
+Each entry in 'infixOperators' generates one level of recursion in
+'infixExpWithOperators'. This generates a grammar similar to:
+
+@
+  ConditionalOrExpression ::=
+    ConditionalAndExpression [ "||" ConditionalOrExpression ]
+
+  ConditionalAndExpression ::=
+    InclusiveOrExpression [ "&&" ConditionalAndExpression ]
+
+  // and so on...
+@
+
+but the operators associate to the left.
+
+A similar (but more general) pattern can be found in 'Text.Parsec.Expr'.
+-}
 
 ----------------------------------------------------------------------------
 -- Types
