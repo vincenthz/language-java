@@ -434,7 +434,7 @@ instance Pretty FieldAccess where
   prettyPrec p (SuperFieldAccess ident) =
     text "super." <> prettyPrec p ident
   prettyPrec p (ClassFieldAccess name ident) =
-    prettyPrec p name <> text "." <> prettyPrec p ident
+    prettyPrec p name <> text ".super." <> prettyPrec p ident
 
 instance Pretty MethodInvocation where
   prettyPrec p (MethodCall name args) =

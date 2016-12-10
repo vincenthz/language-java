@@ -1,6 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
+import Prelude hiding (exp)
+
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Test.Tasty.HUnit
@@ -67,4 +69,12 @@ main = do
         , testProperty "parsing.generating==id" (\g -> case parser compilationUnit (show $ pretty g) of
                                                             Right g'  -> g == g'
                                                             Left perr -> error (show (pretty g) ++ show perr))
+        , testGroup "generating.parsing==id - fixed tests"
+          [ testRoundTrip exp "ClassFieldAccess" "Object.super.x"
+          ]
         ]
+
+testRoundTrip p testName str = testCase testName $
+  case parser p str of
+    Right syn -> assertEqual "" (prettyPrint syn) str
+    Left perr -> error (str ++ show perr)
