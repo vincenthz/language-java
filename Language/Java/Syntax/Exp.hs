@@ -20,9 +20,9 @@ data Literal
 data Op = Mult | Div | Rem | Add | Sub | LShift | RShift | RRShift
         | LThan | GThan | LThanE | GThanE | Equal | NotEq
         | And | Or | Xor | CAnd | COr
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data,Enum,Bounded)
 
 -- | An assignment operator.
 data AssignOp = EqualA | MultA | DivA | RemA | AddA | SubA
               | LShiftA | RShiftA | RRShiftA | AndA | XorA | OrA
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data,Enum,Bounded)

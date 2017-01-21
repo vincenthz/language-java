@@ -57,7 +57,7 @@ data PrimType
     | CharT
     | FloatT
     | DoubleT
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data,Enum,Bounded)
 
 
 -- | A class is generic if it declares one or more type variables. These type variables are known
