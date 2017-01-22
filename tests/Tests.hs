@@ -72,6 +72,7 @@ main = do
         , testGroup "generating.parsing==id"
           [ testRoundTrip exp "ClassFieldAccess" "Object.super.x"
           , testRoundTrip exp "QualInstanceCreation" "foo.new Bar()"
+          , testRoundTrip exp "MethodInvocation" "foo(1 + 2)"
           ]
         , testGroup "operator parsing"
           [ testParseSame exp "precedence 1"

@@ -78,7 +78,7 @@ instance Pretty EnumConstant where
   prettyPrec p (EnumConstant ident args mBody) =
     prettyPrec p ident 
         -- needs special treatment since even the parens are optional
-        <> opt (not $ null args) (ppArgs p args) 
+        <> opt (not $ null args) (ppArgs args) 
       $$ maybePP p mBody
 
 instance Pretty InterfaceDecl where
@@ -108,7 +108,7 @@ instance Pretty MemberDecl where
           , ppTypeParams p tParams
           , ppResultType p mt
           , prettyPrec p ident
-          , ppArgs p fParams
+          , ppArgs fParams
           , ppThrows p throws
           , ppDefault p def
          ] $$ prettyPrec p body
@@ -117,7 +117,7 @@ instance Pretty MemberDecl where
     hsep [hsep (map (prettyPrec p) mods)
           , ppTypeParams p tParams
           , prettyPrec p ident
-          , ppArgs p fParams
+          , ppArgs fParams
           , ppThrows p throws
          ] $$ prettyPrec p body
 
@@ -154,12 +154,12 @@ instance Pretty ConstructorBody where
 
 instance Pretty ExplConstrInv where
   prettyPrec p (ThisInvoke rts args) =
-    ppTypeParams p rts <+> text "this" <> ppArgs p args <> semi
+    ppTypeParams p rts <+> text "this" <> ppArgs args <> semi
   prettyPrec p (SuperInvoke rts args) =
-    ppTypeParams p rts <+> text "super" <> ppArgs p args <> semi
+    ppTypeParams p rts <+> text "super" <> ppArgs args <> semi
   prettyPrec p (PrimarySuperInvoke e rts args) =
     prettyPrec p e <> char '.' <>
-      ppTypeParams p rts <+> text "super" <> ppArgs p args <> semi
+      ppTypeParams p rts <+> text "super" <> ppArgs args <> semi
 
 instance Pretty Modifier where
   prettyPrec p (Annotation ann) = prettyPrec p ann $+$ nest (-1) ( text "")
@@ -297,13 +297,13 @@ instance Pretty Exp where
   prettyPrec p (InstanceCreation tArgs tds args mBody) =
     hsep [text "new" 
           , ppTypeParams p tArgs 
-          , prettyPrec p tds <> ppArgs p args
+          , prettyPrec p tds <> ppArgs args
          ] $$ maybePP p mBody
   
   prettyPrec p (QualInstanceCreation e tArgs ident args mBody) =
     hsep [prettyPrec p e <> char '.' <> text "new"
           , ppTypeParams p tArgs
-          , prettyPrec p ident <> ppArgs p args
+          , prettyPrec p ident <> ppArgs args
          ] $$ maybePP p mBody
 
   prettyPrec p (ArrayCreate t es k) =
@@ -366,8 +366,8 @@ instance Pretty Exp where
 
 instance Pretty LambdaParams where
   prettyPrec p (LambdaSingleParam ident) = prettyPrec p ident
-  prettyPrec p (LambdaFormalParams params) = ppArgs p params
-  prettyPrec p (LambdaInferredParams idents) = ppArgs p idents
+  prettyPrec p (LambdaFormalParams params) = ppArgs params
+  prettyPrec p (LambdaInferredParams idents) = ppArgs idents
 
 instance Pretty LambdaExpression where
   prettyPrec p (LambdaExpression exp) = prettyPrec p exp
@@ -438,23 +438,23 @@ instance Pretty FieldAccess where
 
 instance Pretty MethodInvocation where
   prettyPrec p (MethodCall name args) =
-    prettyPrec p name <> ppArgs p args
+    prettyPrec p name <> ppArgs args
 
   prettyPrec p (PrimaryMethodCall e tArgs ident args) =
     hcat [prettyPrec p e, char '.', ppTypeParams p tArgs, 
-           prettyPrec p ident, ppArgs p args]
+           prettyPrec p ident, ppArgs args]
 
   prettyPrec p (SuperMethodCall tArgs ident args) =
     hcat [text "super.", ppTypeParams p tArgs,
-           prettyPrec p ident, ppArgs p args]
+           prettyPrec p ident, ppArgs args]
 
   prettyPrec p (ClassMethodCall name tArgs ident args) =
     hcat [prettyPrec p name, text ".super.", ppTypeParams p tArgs,
-           prettyPrec p ident, ppArgs p args]
+           prettyPrec p ident, ppArgs args]
   
   prettyPrec p (TypeMethodCall name tArgs ident args) =
     hcat [prettyPrec p name, char '.', ppTypeParams p tArgs,
-           prettyPrec p ident, ppArgs p args]
+           prettyPrec p ident, ppArgs args]
 
 instance Pretty ArrayInit where
   prettyPrec p (ArrayInit vInits) =
@@ -462,8 +462,8 @@ instance Pretty ArrayInit where
     --braces $ hsep (punctuate comma (map (prettyPrec p) vInits))
 
 
-ppArgs :: Pretty a => Int -> [a] -> Doc
-ppArgs p = parens . hsep . punctuate comma . map (prettyPrec p)
+ppArgs :: Pretty a => [a] -> Doc
+ppArgs = parens . hsep . punctuate comma . map pretty
 
 -----------------------------------------------------------------------
 -- Types
