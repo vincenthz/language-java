@@ -71,6 +71,7 @@ main = do
                                                             Left perr -> error (show (pretty g) ++ show perr))
         , testGroup "generating.parsing==id"
           [ testRoundTrip exp "ClassFieldAccess" "Object.super.x"
+          , testRoundTrip exp "QualInstanceCreation" "foo.new Bar()"
           ]
         , testGroup "operator parsing"
           [ testParseSame exp "precedence 1"

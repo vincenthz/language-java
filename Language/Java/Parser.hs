@@ -705,9 +705,7 @@ unaryExp = try preIncDec <|>
     postfixExp
 
 postfixExpNES :: P Exp
-postfixExpNES = -- try postIncDec <|>
-    try primary <|>
-    ExpName <$> name
+postfixExpNES = primary
 
 postfixExp :: P Exp
 postfixExp = do
@@ -741,6 +739,7 @@ primaryNoNewArrayNPS =
     try instanceCreationNPS <|>
     try (MethodInv <$> methodInvocationNPS) <|>
     try (FieldAccess <$> fieldAccessNPS) <|>
+    try (ExpName <$> name) <|>
     ArrayAccess <$> arrayAccessNPS
 
 primarySuffix :: P (Exp -> Exp)
