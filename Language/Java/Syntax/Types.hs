@@ -41,6 +41,15 @@ data TypeDeclSpecifier
 data Diamond = Diamond
   deriving (Eq,Show,Read,Typeable,Generic,Data)
 
+data TypeDeclSpecifier
+    = TypeDeclSpecifier ClassType
+    | TypeDeclSpecifierWithDiamond ClassType Ident Diamond
+    | TypeDeclSpecifierUnqualifiedWithDiamond Ident Diamond
+  deriving (Eq,Show,Typeable,Generic,Data)
+
+data Diamond = Diamond
+  deriving (Eq,Show,Typeable,Generic,Data)
+
 -- | Wildcards may be given explicit bounds, either upper (@extends@) or lower (@super@) bounds.
 data WildcardBound
     = ExtendsBound RefType
