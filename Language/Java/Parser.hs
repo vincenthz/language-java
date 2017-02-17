@@ -683,14 +683,15 @@ infixExpSuffix =
       ie2 <- infixExp
       return $ \ie1 -> BinOp ie1 op ie2) <|>
     (do op <- infixOp
-        e2 <- unaryExp
+        e2 <- infixExp
         return $ \e1 -> BinOp e1 op e2) <|>
     (do tok KW_Instanceof
         t  <- refType
         return $ \e1 -> InstanceOf e1 t)
 
 unaryExp :: P Exp
-unaryExp = try preIncDec <|>
+unaryExp = 
+    try preIncDec <|>
     try (do
         op <- prefixOp
         ue <- unaryExp
