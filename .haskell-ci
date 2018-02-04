@@ -1,0 +1,25 @@
+# compiler supported and their equivalent LTS
+compiler: ghc-7.8 lts-2.22
+compiler: ghc-7.10 lts-6.35
+compiler: ghc-8.0 lts-9.21
+compiler: ghc-8.2 lts-10.4
+compiler: ghc-8.4 ghc-8.4-alpha2
+
+# options
+# option: alias x=y z=v
+
+# builds 
+build: ghc-7.8 nohaddock
+build: ghc-8.2
+build: ghc-7.10
+build: ghc-8.0
+build: ghc-8.0 os=osx
+#build: ghc-8.4
+
+# packages
+package: '.'
+
+# extra builds
+hlint: allowed-failure
+weeder: allowed-failure
+coverall: false
