@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Language.Java.Pretty where
 
 import Text.PrettyPrint
@@ -7,6 +8,9 @@ import Data.List (intersperse)
 
 import Language.Java.Syntax
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 prettyPrint :: Pretty a => a -> String
 prettyPrint = show . pretty
