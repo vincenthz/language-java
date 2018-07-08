@@ -9,7 +9,7 @@ import Data.Char
 
 %wrapper "posn"
 
-$digit      = [0-9]
+$digit      = [0-9_]
 $nonzero    = [1-9]
 $octdig     = [0-7]
 $hexdig     = [0-9A-Fa-f]

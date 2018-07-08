@@ -604,10 +604,15 @@ switchLabel = (tok KW_Default >> colon >> return Default) <|>
 
 -- Try-catch clauses
 
+exceptionParams = try formalParam <|> do
+    ttype
+    tok Op_Or
+    exceptionParams
+
 catch :: P Catch
 catch = do
     tok KW_Catch
-    fp <- parens formalParam
+    fp <- parens exceptionParams
     b  <- block
     return $ Catch fp b
 
