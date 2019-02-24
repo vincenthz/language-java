@@ -213,16 +213,13 @@ instance Pretty Stmt where
                           ]) $+$ prettyNestedStmt p stmt
 
   prettyPrec p (EnhancedFor mods t ident e stmt) =
-    hsep [text "for"
-          , parens $ hsep [
-                  hsep (map (prettyPrec p) mods)
-                , prettyPrec p t
-                , prettyPrec p ident
-                , colon
-                , prettyPrec p e
-               ]
-          , prettyPrec p stmt
-         ]
+    text "for" <+> (parens $ hsep [
+                      hsep (map (prettyPrec p) mods)
+                    , prettyPrec p t
+                    , prettyPrec p ident
+                    , colon
+                    , prettyPrec p e
+                   ]) $+$ prettyNestedStmt p stmt
 
   prettyPrec p Empty = semi
   
