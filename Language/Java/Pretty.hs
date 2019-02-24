@@ -213,16 +213,13 @@ instance Pretty Stmt where
                           ]) $+$ prettyNestedStmt p stmt
 
   prettyPrec p (EnhancedFor mods t ident e stmt) =
-    hsep [text "for"
-          , parens $ hsep [
-                  hsep (map (prettyPrec p) mods)
-                , prettyPrec p t
-                , prettyPrec p ident
-                , colon
-                , prettyPrec p e
-               ]
-          , prettyPrec p stmt
-         ]
+    text "for" <+> (parens $ hsep [
+                      hsep (map (prettyPrec p) mods)
+                    , prettyPrec p t
+                    , prettyPrec p ident
+                    , colon
+                    , prettyPrec p e
+                   ]) $+$ prettyNestedStmt p stmt
 
   prettyPrec p Empty = semi
   
@@ -344,11 +341,11 @@ instance Pretty Exp where
 
   prettyPrec p (PreNot e) = parenPrec p 2 $ char '!' <> prettyPrec 2 e
 
-  prettyPrec p (Cast t e) = parenPrec p 2 $ parens (prettyPrec p t) <+> prettyPrec 2 e
+  prettyPrec p (Cast t e) = parenPrec p 2 $ parens (prettyPrec 0 t) <+> prettyPrec 2 e
   
   prettyPrec p (BinOp e1 op e2) =
     let prec = opPrec op in
-    parenPrec p prec (prettyPrec prec e1 <+> prettyPrec p op <+> prettyPrec prec e2)
+    parenPrec p prec (prettyPrec prec e1 <+> prettyPrec 0 op <+> prettyPrec (prec - 1) e2)
 
   prettyPrec p (InstanceOf e rt) =
     let cp = opPrec LThan in
@@ -356,11 +353,11 @@ instance Pretty Exp where
                    <+> text "instanceof" <+> prettyPrec cp rt
     
   prettyPrec p (Cond c th el) =
-    parenPrec p 13 $ prettyPrec 13 c <+> char '?'
-                   <+> prettyPrec p th <+> colon <+> prettyPrec 13 el
+    parenPrec p 13 $ prettyPrec 12 c <+> char '?'
+                   <+> prettyPrec 13 th <+> colon <+> prettyPrec 13 el
 
   prettyPrec p (Assign lhs aop e) =
-    hsep [prettyPrec p lhs, prettyPrec p aop, prettyPrec p e]
+    parenPrec p 14 (prettyPrec 13 lhs <+> prettyPrec 0 aop <+> prettyPrec 14 e)
 
   prettyPrec p (Lambda params body) =
     prettyPrec p params <+> text "->" <+> prettyPrec p body
@@ -442,23 +439,23 @@ instance Pretty FieldAccess where
 
 instance Pretty MethodInvocation where
   prettyPrec p (MethodCall name args) =
-    prettyPrec p name <> ppArgs p args
+    prettyPrec 0 name <> ppArgs 0 args
 
   prettyPrec p (PrimaryMethodCall e tArgs ident args) =
-    hcat [prettyPrec p e, char '.', ppTypeParams p tArgs, 
-           prettyPrec p ident, ppArgs p args]
+    hcat [prettyPrec 1 e, char '.', ppTypeParams 0 tArgs, 
+           prettyPrec 0 ident, ppArgs 0 args]
 
   prettyPrec p (SuperMethodCall tArgs ident args) =
-    hcat [text "super.", ppTypeParams p tArgs,
-           prettyPrec p ident, ppArgs p args]
+    hcat [text "super.", ppTypeParams 0 tArgs,
+           prettyPrec 0 ident, ppArgs 0 args]
 
   prettyPrec p (ClassMethodCall name tArgs ident args) =
-    hcat [prettyPrec p name, text ".super.", ppTypeParams p tArgs,
-           prettyPrec p ident, ppArgs p args]
+    hcat [prettyPrec 0 name, text ".super.", ppTypeParams 0 tArgs,
+           prettyPrec 0 ident, ppArgs 0 args]
   
   prettyPrec p (TypeMethodCall name tArgs ident args) =
-    hcat [prettyPrec p name, char '.', ppTypeParams p tArgs,
-           prettyPrec p ident, ppArgs p args]
+    hcat [prettyPrec 0 name, char '.', ppTypeParams 0 tArgs,
+           prettyPrec 0 ident, ppArgs 0 args]
 
 instance Pretty ArrayInit where
   prettyPrec p (ArrayInit vInits) =
@@ -495,21 +492,21 @@ instance Pretty TypeDeclSpecifier where
   prettyPrec p (TypeDeclSpecifierUnqualifiedWithDiamond i d) = prettyPrec p i <> prettyPrec p d
 
 instance Pretty Diamond where
-  prettyPrec p Diamond = text "<>"
+  prettyPrec _ Diamond = text "<>"
 
 instance Pretty WildcardBound where
   prettyPrec p (ExtendsBound rt) = text "extends" <+> prettyPrec p rt
   prettyPrec p (SuperBound   rt) = text "super"   <+> prettyPrec p rt
 
 instance Pretty PrimType where
-  prettyPrec p BooleanT = text "boolean"
-  prettyPrec p ByteT    = text "byte"
-  prettyPrec p ShortT   = text "short"
-  prettyPrec p IntT     = text "int"
-  prettyPrec p LongT    = text "long"
-  prettyPrec p CharT    = text "char"
-  prettyPrec p FloatT   = text "float"
-  prettyPrec p DoubleT  = text "double"
+  prettyPrec _ BooleanT = text "boolean"
+  prettyPrec _ ByteT    = text "byte"
+  prettyPrec _ ShortT   = text "short"
+  prettyPrec _ IntT     = text "int"
+  prettyPrec _ LongT    = text "long"
+  prettyPrec _ CharT    = text "char"
+  prettyPrec _ FloatT   = text "float"
+  prettyPrec _ DoubleT  = text "double"
 
 instance Pretty TypeParam where
   prettyPrec p (TypeParam ident rts) =
@@ -551,11 +548,11 @@ ppResultType p (Just a) = prettyPrec p a
 -- Names and identifiers
 
 instance Pretty Name where
-  prettyPrec p (Name is) =
-    hcat (punctuate (char '.') $ map (prettyPrec p) is)
+  prettyPrec _ (Name is) =
+    hcat (punctuate (char '.') $ map pretty is)
 
 instance Pretty Ident where
-  prettyPrec p (Ident s) = text s
+  prettyPrec _ (Ident s) = text s
 
 
 -----------------------------------------------------------------------
