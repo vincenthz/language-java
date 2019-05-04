@@ -1,6 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
+import Prelude hiding (exp)
+
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Test.Tasty.HUnit
@@ -67,4 +69,33 @@ main = do
         , testProperty "parsing.generating==id" (\g -> case parser compilationUnit (show $ pretty g) of
                                                             Right g'  -> g == g'
                                                             Left perr -> error (show (pretty g) ++ show perr))
+        , testGroup "generating.parsing==id"
+          [ testRoundTrip exp "ClassFieldAccess" "Object.super.x"
+          , testRoundTrip exp "QualInstanceCreation" "foo.new Bar()"
+          , testRoundTrip exp "MethodInvocation" "foo(1 + 2)"
+          ]
+        , testGroup "operator parsing"
+          [ testParseSame exp "precedence 1"
+              "1 +  2 * 3"
+              "1 + (2 * 3)"
+          , testParseSame exp "precedence 2"
+              " 1 * 2  +  2 * 3"
+              "(1 * 2) + (2 * 3)"
+          , testParseSame exp "precedence 3"
+              "1 || 2 && 3 | 4 ^ 5 == 6 > 7 >>> 8 - 9 * 10"
+              "1 || (2 && (3 | (4 ^ (5 == (6 > (7 >>> (8 - (9 * 10))))))))"
+          , testParseSame exp "associativity"
+              "  1 - 2  - 3  - 4"
+              "((1 - 2) - 3) - 4"
+          ]
         ]
+
+testRoundTrip p testName str = testCase testName $
+  case parser p str of
+    Right syn -> assertEqual "" (prettyPrint syn) str
+    Left perr -> error (str ++ show perr)
+
+testParseSame p testName s1 s2 = testCase testName $
+  case (parser p s1, parser p s2) of
+    (Right e1, Right e2) -> assertEqual "" e1 e2
+    result -> error (show result)
