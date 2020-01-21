@@ -30,7 +30,9 @@ module Language.Java.Parser (
 
     empty, list, list1, seplist, seplist1, opt, bopt, lopt,
 
-    comma, semiColon, period, colon
+    comma, semiColon, period, colon,
+
+    P
 
     ) where
 
