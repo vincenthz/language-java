@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleInstances, TypeSynonymInstances #-}
 module Main where
 
 import Test.Tasty
@@ -57,7 +57,7 @@ getAllJavaPaths path = map (path </>) . filter isJavaFile <$> getDirectoryConten
 main = do
     exists <- doesDirectoryExist testJavaDirectory
     when (not exists) $ error "cannot find tests files java directory"
-    
+
     allGoodJavas <- getAllJavaPaths (testJavaDirectory </> "good")
     allBadJavas <- getAllJavaPaths (testJavaDirectory </> "bad")
 
@@ -65,6 +65,6 @@ main = do
         [ testGroup "parsing unit good" (map (toTestCase True) allGoodJavas)
         , testGroup "parsing unit bad" (map (toTestCase False) allBadJavas)
         , testProperty "parsing.generating==id" (\g -> case parser compilationUnit (show $ pretty g) of
-                                                            Right g'  -> g == g'
+                                                            Right g'  -> g == void g'
                                                             Left perr -> error (show (pretty g) ++ show perr))
         ]

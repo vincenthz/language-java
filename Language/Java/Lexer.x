@@ -1,7 +1,7 @@
 {
 {-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -fno-warn-tabs -fno-warn-unused-binds #-}
-module Language.Java.Lexer (L(..), Token(..), lexer) where
+module Language.Java.Lexer (L(..), Token(..), Pos, lexer) where
 
 import Numeric
 import Data.Char
