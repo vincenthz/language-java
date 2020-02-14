@@ -1,47 +1,176 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, DeriveFunctor, PatternSynonyms, TemplateHaskell, ViewPatterns, TupleSections #-}
 module Language.Java.Syntax
-    ( CompilationUnit(..)
+    ( CompilationUnitA(..)
     , PackageDecl(..)
     , ImportDecl(..)
-    , TypeDecl(..)
-    , ClassDecl(..)
-    , ClassBody(..)
-    , EnumBody(..)
-    , EnumConstant(..)
-    , InterfaceDecl(..)
-    , InterfaceBody(..)
+    , TypeDeclA(..)
+    , ClassDeclA(..)
+    , ClassBodyA(..)
+    , EnumBodyA(..)
+    , EnumConstantA(..)
+    , InterfaceDeclA(..)
+    , InterfaceBodyA(..)
     , InterfaceKind(..)
-    , Decl(..)
-    , MemberDecl(..)
-    , VarDecl(..)
+    , DeclA(..)
+    , MemberDeclA(..)
+    , VarDeclA(..)
     , VarDeclId(..)
-    , VarInit(..)
-    , FormalParam(..)
-    , MethodBody(..)
-    , ConstructorBody(..)
-    , ExplConstrInv(..)
-    , Modifier(..)
-    , Annotation(..)
+    , VarInitA(..)
+    , FormalParamA(..)
+    , MethodBodyA(..)
+    , ConstructorBodyA(..)
+    , ExplConstrInvA(..)
+    , ModifierA(..)
+    , AnnotationA(..)
     , desugarAnnotation
     , desugarAnnotation'
-    , ElementValue(..)
-    , Block(..)
-    , BlockStmt(..)
-    , Stmt(..)
-    , Catch(..)
-    , SwitchBlock(..)
-    , SwitchLabel(..)
-    , ForInit(..)
+    , ElementValueA(..)
+    , BlockA(..)
+    , BlockStmtA(..)
+    , StmtA(..)
+    , CatchA(..)
+    , SwitchBlockA(..)
+    , SwitchLabelA(..)
+    , ForInitA(..)
     , ExceptionType
+    , ArgumentA
+    , ExpA(..)
+    , LhsA(..)
+    , ArrayIndexA(..)
+    , FieldAccessA(..)
+    , LambdaParamsA(..)
+    , LambdaExpressionA(..)
+    , ArrayInitA(..)
+    , MethodInvocationA(..)
+     -- ** Unannotated aliases and patterns for backwards compatibility
+    , CompilationUnit
+    , pattern CompilationUnit
+    , TypeDecl
+    , pattern ClassTypeDecl
+    , pattern InterfaceTypeDecl
+    , ClassDecl
+    , pattern ClassDecl
+    , pattern EnumDecl
+    , ClassBody
+    , pattern ClassBody
+    , EnumBody
+    , pattern EnumBody
+    , EnumConstant,
+      pattern EnumConstant
+    , InterfaceDecl
+    , pattern InterfaceDecl
+    , InterfaceBody
+    , pattern InterfaceBody
+    , Decl
+    , pattern MemberDecl
+    , pattern InitDecl
+    , MemberDecl
+    , pattern FieldDecl
+    , pattern MethodDecl
+    , pattern ConstructorDecl
+    , pattern MemberClassDecl
+    , pattern MemberInterfaceDecl
+    , VarDecl
+    , pattern VarDecl
+    , VarInit
+    , pattern InitExp
+    , pattern InitArray
+    , FormalParam
+    , pattern FormalParam
+    , MethodBody
+    , pattern MethodBody
+    , ConstructorBody
+    , pattern ConstructorBody
+    , ExplConstrInv
+    , pattern ThisInvoke
+    , pattern SuperInvoke
+    , pattern PrimarySuperInvoke
+    , Modifier
+    , pattern Annotation
+    , Annotation
+    , ElementValue
+    , pattern EVVal
+    , pattern EVAnn
+    , Block
+    , pattern Block
+    , BlockStmt
+    , pattern BlockStmt
+    , pattern LocalClass
+    , pattern LocalVars
+    , Stmt
+    , pattern StmtBlock
+    , pattern IfThen
+    , pattern IfThenElse
+    , pattern While
+    , pattern BasicFor
+    , pattern EnhancedFor
+    , pattern Empty
+    , pattern ExpStmt
+    , pattern Assert
+    , pattern Switch
+    , pattern Do
+    , pattern Break
+    , pattern Continue
+    , pattern Return
+    , pattern Synchronized
+    , pattern Throw
+    , pattern Try
+    , pattern Labeled
+    , Catch
+    , pattern Catch
+    , SwitchBlock
+    , pattern SwitchBlock
+    , SwitchLabel
+    , ForInit
+    , pattern ForLocalVars
+    , pattern ForInitExps
     , Argument
-    , Exp(..)
-    , Lhs(..)
-    , ArrayIndex(..)
-    , FieldAccess(..)
-    , LambdaParams(..)
-    , LambdaExpression(..)
-    , ArrayInit(..)
-    , MethodInvocation(..)
+    , Exp
+    , pattern Lit
+    , pattern ClassLit
+    , pattern This
+    , pattern ThisClass
+    , pattern InstanceCreation
+    , pattern QualInstanceCreation
+    , pattern ArrayCreate
+    , pattern ArrayCreateInit
+    , pattern FieldAccess
+    , pattern MethodInv
+    , pattern ArrayAccess
+    , pattern ExpName
+    , pattern PostIncrement
+    , pattern PostDecrement
+    , pattern PreIncrement
+    , pattern PreDecrement
+    , pattern PrePlus
+    , pattern PreMinus
+    , pattern PreBitCompl
+    , pattern PreNot
+    , pattern Cast
+    , pattern BinOp
+    , pattern InstanceOf
+    , pattern Cond
+    , pattern Assign
+    , pattern Lambda
+    , pattern MethodRef
+    , Lhs
+    , pattern NameLhs
+    , pattern FieldLhs
+    , pattern ArrayLhs
+    , ArrayIndex
+    , pattern ArrayIndex
+    , FieldAccess
+    , pattern PrimaryFieldAccess
+    , pattern SuperFieldAccess
+    , pattern ClassFieldAccess
+    , LambdaParams
+    , pattern LambdaSingleParam
+    , pattern LambdaFormalParams
+    , pattern LambdaInferredParams
+    , LambdaExpression
+    , ArrayInit
+    , pattern ArrayInit
+    , MethodInvocation
     , module Language.Java.Syntax.Exp
     , module Language.Java.Syntax.Types
     ) where
@@ -51,15 +180,21 @@ import GHC.Generics (Generic)
 
 import Language.Java.Syntax.Types
 import Language.Java.Syntax.Exp
+import Language.Java.Syntax.Util
 
 -----------------------------------------------------------------------
 -- Packages
 
 
 -- | A compilation unit is the top level syntactic goal symbol of a Java program.
-data CompilationUnit = CompilationUnit (Maybe PackageDecl) [ImportDecl] [TypeDecl]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data CompilationUnitA a = CompilationUnitA (Maybe (PackageDecl,a)) [(ImportDecl,a)] [TypeDeclA a] a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
+type CompilationUnit = CompilationUnitA ()
+
+pattern CompilationUnit :: Maybe PackageDecl -> [ImportDecl] -> [TypeDeclA ()] -> CompilationUnit
+pattern CompilationUnit a b c <- CompilationUnitA (fmap fst -> a) (fst . unzip -> b) c ()
+    where CompilationUnit a b c = CompilationUnitA (fmap (, ()) a) (fmap (,()) b) c ()
 
 -- | A package declaration appears within a compilation unit to indicate the package to which the compilation unit belongs.
 newtype PackageDecl = PackageDecl Name
@@ -73,83 +208,80 @@ data ImportDecl
     = ImportDecl Bool {- static? -} Name Bool {- .*? -}
   deriving (Eq,Show,Read,Typeable,Generic,Data)
 
-
 -----------------------------------------------------------------------
 -- Declarations
 
 -- | A type declaration declares a class type or an interface type.
-data TypeDecl
-    = ClassTypeDecl ClassDecl
-    | InterfaceTypeDecl InterfaceDecl
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data TypeDeclA a
+    = ClassTypeDeclA ( ClassDeclA a) a
+    | InterfaceTypeDeclA ( InterfaceDeclA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A class declaration specifies a new named reference type.
-data ClassDecl
-    = ClassDecl [Modifier] Ident [TypeParam] (Maybe RefType) [RefType] ClassBody
-    | EnumDecl  [Modifier] Ident                             [RefType] EnumBody
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ClassDeclA a
+    = ClassDeclA [ModifierA a] Ident [TypeParam] (Maybe RefType) [RefType] (ClassBodyA a) a
+    | EnumDeclA  [ModifierA a] Ident                             [RefType] (EnumBodyA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A class body may contain declarations of members of the class, that is,
 --   fields, classes, interfaces and methods.
 --   A class body may also contain instance initializers, static
 --   initializers, and declarations of constructors for the class.
-newtype ClassBody = ClassBody [Decl]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+newtype ClassBodyA a = ClassBodyA [DeclA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | The body of an enum type may contain enum constants.
-data EnumBody = EnumBody [EnumConstant] [Decl]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data EnumBodyA a = EnumBodyA [EnumConstantA a] [DeclA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | An enum constant defines an instance of the enum type.
-data EnumConstant = EnumConstant Ident [Argument] (Maybe ClassBody)
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data EnumConstantA a = EnumConstantA Ident [ArgumentA a] (Maybe ( ClassBodyA a)) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | An interface declaration introduces a new reference type whose members
 --   are classes, interfaces, constants and abstract methods. This type has
 --   no implementation, but otherwise unrelated classes can implement it by
 --   providing implementations for its abstract methods.
-data InterfaceDecl
-    = InterfaceDecl InterfaceKind [Modifier] Ident [TypeParam] [RefType] InterfaceBody
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data InterfaceDeclA a
+    = InterfaceDeclA InterfaceKind [ModifierA a] Ident [TypeParam] [RefType] ( InterfaceBodyA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | Interface can declare either a normal interface or an annotation
 data InterfaceKind = InterfaceNormal | InterfaceAnnotation
   deriving (Eq,Show,Read,Typeable,Generic,Data)
 
 -- | The body of an interface may declare members of the interface.
-newtype InterfaceBody
-    = InterfaceBody [MemberDecl]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+newtype InterfaceBodyA a
+    = InterfaceBodyA [MemberDeclA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A declaration is either a member declaration, or a declaration of an
 --   initializer, which may be static.
-data Decl
-    = MemberDecl MemberDecl
-    | InitDecl Bool Block
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
-
+data DeclA a
+    = MemberDeclA ( MemberDeclA a) a
+    | InitDeclA Bool ( BlockA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A class or interface member can be an inner class or interface, a field or
 --   constant, or a method or constructor. An interface may only have as members
 --   constants (not fields), abstract methods, and no constructors.
-data MemberDecl
+data MemberDeclA a
     -- | The variables of a class type are introduced by field declarations.
-    = FieldDecl [Modifier] Type [VarDecl]
+    = FieldDeclA [ModifierA a] Type [VarDeclA a] a
     -- | A method declares executable code that can be invoked, passing a fixed number of values as arguments.
-    | MethodDecl      [Modifier] [TypeParam] (Maybe Type) Ident [FormalParam] [ExceptionType] (Maybe Exp) MethodBody
+    | MethodDeclA      [ModifierA a] [TypeParam] (Maybe Type) Ident [FormalParamA a] [ExceptionType] (Maybe ( ExpA a)) ( MethodBodyA a) a
     -- | A constructor is used in the creation of an object that is an instance of a class.
-    | ConstructorDecl [Modifier] [TypeParam]              Ident [FormalParam] [ExceptionType] ConstructorBody
+    | ConstructorDeclA [ModifierA a] [TypeParam]              Ident [FormalParamA a] [ExceptionType] ( ConstructorBodyA a) a
     -- | A member class is a class whose declaration is directly enclosed in another class or interface declaration.
-    | MemberClassDecl ClassDecl
+    | MemberClassDeclA ( ClassDeclA a) a
     -- | A member interface is an interface whose declaration is directly enclosed in another class or interface declaration.
-    | MemberInterfaceDecl InterfaceDecl
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
-
+    | MemberInterfaceDeclA ( InterfaceDeclA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A declaration of a variable, which may be explicitly initialized.
-data VarDecl
-    = VarDecl VarDeclId (Maybe VarInit)
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data VarDeclA a
+    = VarDeclA VarDeclId (Maybe ( VarInitA a)) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | The name of a variable in a declaration, which may be an array.
 data VarDeclId
@@ -159,42 +291,49 @@ data VarDeclId
   deriving (Eq,Show,Read,Typeable,Generic,Data)
 
 -- | Explicit initializer for a variable declaration.
-data VarInit
-    = InitExp Exp
-    | InitArray ArrayInit
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data VarInitA a
+    = InitExpA ( ExpA a) a
+    | InitArrayA ( ArrayInitA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
 
 -- | A formal parameter in method declaration. The last parameter
 --   for a given declaration may be marked as variable arity,
 --   indicated by the boolean argument.
-data FormalParam = FormalParam [Modifier] Type Bool VarDeclId
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data FormalParamA a = FormalParamA [ModifierA a] Type Bool VarDeclId a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A method body is either a block of code that implements the method or simply a
 --   semicolon, indicating the lack of an implementation (modelled by 'Nothing').
-newtype MethodBody = MethodBody (Maybe Block)
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+newtype MethodBodyA a = MethodBodyA (Maybe ( BlockA a))
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | The first statement of a constructor body may be an explicit invocation of
 --   another constructor of the same class or of the direct superclass.
-data ConstructorBody = ConstructorBody (Maybe ExplConstrInv) [BlockStmt]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ConstructorBodyA a = ConstructorBodyA (Maybe (ExplConstrInvA a, a)) [BlockStmtA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+type ConstructorBody = ConstructorBodyA ()
+
+pattern ConstructorBody :: Maybe (ExplConstrInvA ()) -> [BlockStmtA ()] -> ConstructorBody
+pattern ConstructorBody a b <- ConstructorBodyA (fmap fst -> a) b
+  where ConstructorBody a b = ConstructorBodyA (fmap (,()) a) b
 
 -- | An explicit constructor invocation invokes another constructor of the
 --   same class, or a constructor of the direct superclass, which may
 --   be qualified to explicitly specify the newly created object's immediately
 --   enclosing instance.
-data ExplConstrInv
-    = ThisInvoke             [RefType] [Argument]
-    | SuperInvoke            [RefType] [Argument]
-    | PrimarySuperInvoke Exp [RefType] [Argument]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ExplConstrInvA a
+    = ThisInvokeA             [RefType] [ArgumentA a]
+    | SuperInvokeA            [RefType] [ArgumentA a]
+    | PrimarySuperInvokeA ( ExpA a) [RefType] [ArgumentA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 
 -- | A modifier specifying properties of a given declaration. In general only
 --   a few of these modifiers are allowed for each declaration type, for instance
 --   a member type declaration may only specify one of public, private or protected.
-data Modifier
+data ModifierA a
     = Public
     | Private
     | Protected
@@ -205,12 +344,17 @@ data Modifier
     | Transient
     | Volatile
     | Native
-    | Annotation Annotation
+    | AnnotationA ( AnnotationA a)
     | Synchronized_
-  deriving (Eq,Read,Typeable,Generic,Data)
+  deriving (Eq,Read,Typeable,Generic,Data, Functor)
 
-instance Show Modifier where
-   show Public = "public" 
+type Modifier = ModifierA ()
+
+pattern Annotation :: Annotation -> Modifier
+pattern Annotation a = AnnotationA a
+
+instance Show a => Show ( ModifierA a) where
+   show Public = "public"
    show Private = "private"
    show Protected = "protected"
    show Abstract = "abstract"
@@ -220,16 +364,18 @@ instance Show Modifier where
    show Transient = "transient"
    show Volatile = "volatile"
    show Native = "native"
-   show (Annotation a) = show a
+   show (AnnotationA a) = show a
    show Synchronized_ = "synchronized"
 
 -- | Annotations have three different forms: no-parameter, single-parameter or key-value pairs
-data Annotation = NormalAnnotation        { annName :: Name -- Not type because not type generics not allowed
-                                          , annKV   :: [(Ident, ElementValue)] }
-                | SingleElementAnnotation { annName :: Name
-                                          , annValue:: ElementValue }
-                | MarkerAnnotation        { annName :: Name }
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data AnnotationA a = NormalAnnotation        { annName :: Name -- Not type because not type generics not allowed
+                                            , annKV   :: [(Ident, ElementValueA a)] }
+                  | SingleElementAnnotation { annName :: Name
+                                            , annValue:: ElementValueA a }
+                  | MarkerAnnotation        { annName :: Name }
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+type Annotation = AnnotationA ()
 
 desugarAnnotation (MarkerAnnotation n)          = (n, [])
 desugarAnnotation (SingleElementAnnotation n e) = (n, [(Ident "value", e)])
@@ -237,230 +383,265 @@ desugarAnnotation (NormalAnnotation n kv)       = (n, kv)
 desugarAnnotation' = uncurry NormalAnnotation . desugarAnnotation
 
 -- | Annotations may contain  annotations or (loosely) expressions
-data ElementValue = EVVal VarInit
-                  | EVAnn Annotation
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ElementValueA a = EVValA (VarInitA a)
+                     | EVAnnA (AnnotationA a)
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -----------------------------------------------------------------------
 -- Statements
 
 -- | A block is a sequence of statements, local class declarations
 --   and local variable declaration statements within braces.
-data Block = Block [BlockStmt]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
-
-
+newtype BlockA a = BlockA [BlockStmtA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A block statement is either a normal statement, a local
 --   class declaration or a local variable declaration.
-data BlockStmt
-    = BlockStmt Stmt
-    | LocalClass ClassDecl
-    | LocalVars [Modifier] Type [VarDecl]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
-
+data BlockStmtA a
+    = BlockStmtA ( StmtA a) a
+    | LocalClassA ( ClassDeclA a)
+    | LocalVarsA [ModifierA a] Type [VarDeclA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A Java statement.
-data Stmt
+data StmtA a
     -- | A statement can be a nested block.
-    = StmtBlock Block
+    = StmtBlockA ( BlockA a) a
     -- | The @if-then@ statement allows conditional execution of a statement.
-    | IfThen Exp Stmt
+    | IfThenA ( ExpA a) ( StmtA a) a
     -- | The @if-then-else@ statement allows conditional choice of two statements, executing one or the other but not both.
-    | IfThenElse Exp Stmt Stmt
+    | IfThenElseA ( ExpA a) ( StmtA a) ( StmtA a) a
     -- | The @while@ statement executes an expression and a statement repeatedly until the value of the expression is false.
-    | While Exp Stmt
+    | WhileA ( ExpA a) ( StmtA a) a
     -- | The basic @for@ statement executes some initialization code, then executes an expression, a statement, and some
     --   update code repeatedly until the value of the expression is false.
-    | BasicFor (Maybe ForInit) (Maybe Exp) (Maybe [Exp]) Stmt
+    | BasicForA (Maybe (ForInitA a)) (Maybe ( ExpA a)) (Maybe [ExpA a]) ( StmtA a) a
     -- | The enhanced @for@ statement iterates over an array or a value of a class that implements the @iterator@ interface.
-    | EnhancedFor [Modifier] Type Ident Exp Stmt
+    | EnhancedForA [ModifierA a] Type Ident ( ExpA a) ( StmtA a) a
     -- | An empty statement does nothing.
-    | Empty
+    | EmptyA a
     -- | Certain kinds of expressions may be used as statements by following them with semicolons:
     --   assignments, pre- or post-inc- or decrementation, method invocation or class instance
     --   creation expressions.
-    | ExpStmt Exp
+    | ExpStmtA ( ExpA a) a
     -- | An assertion is a statement containing a boolean expression, where an error is reported if the expression
     --   evaluates to false.
-    | Assert Exp (Maybe Exp)
+    | AssertA ( ExpA a) (Maybe ( ExpA a )) a
     -- | The switch statement transfers control to one of several statements depending on the value of an expression.
-    | Switch Exp [SwitchBlock]
+    | SwitchA ( ExpA a) [SwitchBlockA a] a
     -- | The @do@ statement executes a statement and an expression repeatedly until the value of the expression is false.
-    | Do Stmt Exp
+    | DoA ( StmtA a) ( ExpA a) a
     -- | A @break@ statement transfers control out of an enclosing statement.
-    | Break (Maybe Ident)
+    | BreakA (Maybe Ident) a
     -- | A @continue@ statement may occur only in a while, do, or for statement. Control passes to the loop-continuation
     --   point of that statement.
-    | Continue (Maybe Ident)
+    | ContinueA (Maybe Ident) a
     -- A @return@ statement returns control to the invoker of a method or constructor.
-    | Return (Maybe Exp)
+    | ReturnA (Maybe ( ExpA a)) a
     -- | A @synchronized@ statement acquires a mutual-exclusion lock on behalf of the executing thread, executes a block,
     --   then releases the lock. While the executing thread owns the lock, no other thread may acquire the lock.
-    | Synchronized Exp Block
+    | SynchronizedA ( ExpA a) ( BlockA a) a
     -- | A @throw@ statement causes an exception to be thrown.
-    | Throw Exp
+    | ThrowA ( ExpA a) a
     -- | A try statement executes a block. If a value is thrown and the try statement has one or more catch clauses that
     --   can catch it, then control will be transferred to the first such catch clause. If the try statement has a finally
     --   clause, then another block of code is executed, no matter whether the try block completes normally or abruptly,
     --   and no matter whether a catch clause is first given control.
-    | Try Block [Catch] (Maybe {- finally -} Block)
+    | TryA ( BlockA a) [CatchA a] (Maybe {- finally -} ( BlockA a)) a
     -- | Statements may have label prefixes.
-    | Labeled Ident Stmt
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+    | LabeledA Ident ( StmtA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | If a value is thrown and the try statement has one or more catch clauses that can catch it, then control will be
 --   transferred to the first such catch clause.
-data Catch = Catch FormalParam Block
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data CatchA a = CatchA ( FormalParamA a) ( BlockA a)
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A block of code labelled with a @case@ or @default@ within a @switch@ statement.
-data SwitchBlock
-    = SwitchBlock SwitchLabel [BlockStmt]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data SwitchBlockA a
+    = SwitchBlockA ( SwitchLabelA a) [BlockStmtA a] a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A label within a @switch@ statement.
-data SwitchLabel
+data SwitchLabelA a
     -- | The expression contained in the @case@ must be a 'Lit' or an @enum@ constant.
-    = SwitchCase Exp
+    = SwitchCase (ExpA a)
     | Default
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+type SwitchLabel = SwitchLabelA ()
 
 -- | Initialization code for a basic @for@ statement.
-data ForInit
-    = ForLocalVars [Modifier] Type [VarDecl]
-    | ForInitExps [Exp]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ForInitA a
+    = ForLocalVarsA [ModifierA a] Type [VarDeclA a]
+    | ForInitExpsA [ExpA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | An exception type has to be a class type or a type variable.
 type ExceptionType = RefType -- restricted to ClassType or TypeVariable
 
 -- | Arguments to methods and constructors are expressions.
-type Argument = Exp
+type ArgumentA = ExpA
 
 -- | A Java expression.
-data Exp
+data ExpA a
     -- | A literal denotes a fixed, unchanging value.
-    = Lit Literal
+    = LitA Literal a
     -- | A class literal, which is an expression consisting of the name of a class, interface, array,
     --   or primitive type, or the pseudo-type void (modelled by 'Nothing'), followed by a `.' and the token class.
-    | ClassLit (Maybe Type)
+    | ClassLitA (Maybe Type) a
     -- | The keyword @this@ denotes a value that is a reference to the object for which the instance method
     --   was invoked, or to the object being constructed.
-    | This
+    | ThisA a
     -- | Any lexically enclosing instance can be referred to by explicitly qualifying the keyword this.
-    | ThisClass Name
+    | ThisClassA Name a
     -- | A class instance creation expression is used to create new objects that are instances of classes.
     -- | The first argument is a list of non-wildcard type arguments to a generic constructor.
     --   What follows is the type to be instantiated, the list of arguments passed to the constructor, and
     --   optionally a class body that makes the constructor result in an object of an /anonymous/ class.
-    | InstanceCreation [TypeArgument] TypeDeclSpecifier [Argument] (Maybe ClassBody)
+    | InstanceCreationA [TypeArgument] TypeDeclSpecifier [ArgumentA a] (Maybe ( ClassBodyA a)) a
     -- | A qualified class instance creation expression enables the creation of instances of inner member classes
     --   and their anonymous subclasses.
-    | QualInstanceCreation Exp [TypeArgument] Ident [Argument] (Maybe ClassBody)
+    | QualInstanceCreationA ( ExpA a) [TypeArgument] Ident [ArgumentA a] (Maybe ( ClassBodyA a)) a
     -- | An array instance creation expression is used to create new arrays. The last argument denotes the number
     --   of dimensions that have no explicit length given. These dimensions must be given last.
-    | ArrayCreate Type [Exp] Int
+    | ArrayCreateA Type [ExpA a] Int a
     -- | An array instance creation expression may come with an explicit initializer. Such expressions may not
     --   be given explicit lengths for any of its dimensions.
-    | ArrayCreateInit Type Int ArrayInit
+    | ArrayCreateInitA Type Int ( ArrayInitA a) a
     -- | A field access expression.
-    | FieldAccess FieldAccess
+    | FieldAccessA ( FieldAccessA a) a
     -- | A method invocation expression.
-    | MethodInv MethodInvocation
+    | MethodInvA ( MethodInvocationA a) a
     -- | An array access expression refers to a variable that is a component of an array.
-    | ArrayAccess ArrayIndex
-{-    | ArrayAccess Exp Exp -- Should this be made into a datatype, for consistency and use with Lhs? -}
+    | ArrayAccessA ( ArrayIndexA a) a
+{-    | ArrayAccess ExpA ExpA -- Should this be made into a datatype, for consistency and use with Lhs? -}
     -- | An expression name, e.g. a variable.
-    | ExpName Name
+    | ExpNameA Name a
     -- | Post-incrementation expression, i.e. an expression followed by @++@.
-    | PostIncrement Exp
+    | PostIncrementA ( ExpA a) a
     -- | Post-decrementation expression, i.e. an expression followed by @--@.
-    | PostDecrement Exp
+    | PostDecrementA ( ExpA a) a
     -- | Pre-incrementation expression, i.e. an expression preceded by @++@.
-    | PreIncrement  Exp
+    | PreIncrementA  ( ExpA a) a
     -- | Pre-decrementation expression, i.e. an expression preceded by @--@.
-    | PreDecrement  Exp
+    | PreDecrementA  ( ExpA a) a
     -- | Unary plus, the promotion of the value of the expression to a primitive numeric type.
-    | PrePlus  Exp
+    | PrePlusA (ExpA a) a
     -- | Unary minus, the promotion of the negation of the value of the expression to a primitive numeric type.
-    | PreMinus Exp
+    | PreMinusA (ExpA a) a
     -- | Unary bitwise complementation: note that, in all cases, @~x@ equals @(-x)-1@.
-    | PreBitCompl Exp
+    | PreBitComplA (ExpA a) a
     -- | Logical complementation of boolean values.
-    | PreNot  Exp
+    | PreNotA (ExpA a) a
     -- | A cast expression converts, at run time, a value of one numeric type to a similar value of another
     --   numeric type; or confirms, at compile time, that the type of an expression is boolean; or checks,
     --   at run time, that a reference value refers to an object whose class is compatible with a specified
     --   reference type.
-    | Cast  Type Exp
+    | CastA Type (ExpA a) a
     -- | The application of a binary operator to two operand expressions.
-    | BinOp Exp Op Exp
+    | BinOpA ( ExpA a) Op ( ExpA a) a
     -- | Testing whether the result of an expression is an instance of some reference type.
-    | InstanceOf Exp RefType
+    | InstanceOfA ( ExpA a) RefType a
     -- | The conditional operator @? :@ uses the boolean value of one expression to decide which of two other
     --   expressions should be evaluated.
-    | Cond Exp Exp Exp
+    | CondA (ExpA a) ( ExpA a) ( ExpA a) a
     -- | Assignment of the result of an expression to a variable.
-    | Assign Lhs AssignOp Exp
+    | AssignA (LhsA a) AssignOp ( ExpA a)
     -- | Lambda expression
-    | Lambda LambdaParams LambdaExpression
+    | LambdaA (LambdaParamsA a) ( LambdaExpressionA a) a
     -- | Method reference
-    | MethodRef Name Ident
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+    | MethodRefA Name Ident a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | The left-hand side of an assignment expression. This operand may be a named variable, such as a local
 --   variable or a field of the current object or class, or it may be a computed variable, as can result from
 --   a field access or an array access.
-data Lhs
-    = NameLhs Name          -- ^ Assign to a variable
-    | FieldLhs FieldAccess  -- ^ Assign through a field access
-    | ArrayLhs ArrayIndex   -- ^ Assign to an array
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data LhsA a
+    = NameLhsA Name a        -- ^ Assign to a variable
+    | FieldLhsA ( FieldAccessA a)  -- ^ Assign through a field access
+    | ArrayLhsA ( ArrayIndexA a)   -- ^ Assign to an array
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | Array access
-data ArrayIndex = ArrayIndex Exp [Exp]    -- ^ Index into an array
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ArrayIndexA a = ArrayIndexA (ExpA a) [ExpA a] a    -- ^ Index into an array
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A field access expression may access a field of an object or array, a reference to which is the value
 --   of either an expression or the special keyword super.
-data FieldAccess
-    = PrimaryFieldAccess Exp Ident      -- ^ Accessing a field of an object or array computed from an expression.
-    | SuperFieldAccess Ident            -- ^ Accessing a field of the superclass.
-    | ClassFieldAccess Name Ident       -- ^ Accessing a (static) field of a named class.
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data FieldAccessA a
+    = PrimaryFieldAccessA ( ExpA a) Ident a     -- ^ Accessing a field of an object or array computed from an expression.
+    | SuperFieldAccessA Ident a            -- ^ Accessing a field of the superclass.
+    | ClassFieldAccessA Name Ident a       -- ^ Accessing a (static) field of a named class.
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 
 -- ¦ A lambda parameter can be a single parameter, or mulitple formal or mulitple inferred parameters
-data LambdaParams
-  = LambdaSingleParam Ident
-  | LambdaFormalParams [FormalParam]
-  | LambdaInferredParams [Ident]
-    deriving (Eq,Show,Read,Typeable,Generic,Data)
+data LambdaParamsA a
+  = LambdaSingleParamA Ident a
+  | LambdaFormalParamsA [FormalParamA a]
+  | LambdaInferredParamsA [(Ident, a)]
+    deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+pattern LambdaInferredParams :: [Ident] -> LambdaParamsA ()
+pattern LambdaInferredParams a <- LambdaInferredParamsA (fst . unzip -> a)
+  where LambdaInferredParams a = LambdaInferredParamsA (map (, ()) a)
 
 -- | Lambda expression, starting from java 8
-data LambdaExpression
-    = LambdaExpression Exp
-    | LambdaBlock Block
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data LambdaExpressionA a
+    = LambdaExpression ( ExpA a)
+    | LambdaBlock ( BlockA a)
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
+type LambdaExpression = LambdaExpressionA ()
 
 -- | A method invocation expression is used to invoke a class or instance method.
-data MethodInvocation
+data MethodInvocationA a
     -- | Invoking a specific named method.
-    = MethodCall Name [Argument]
+    = MethodCall Name [ArgumentA a]
     -- | Invoking a method of a class computed from a primary expression, giving arguments for any generic type parameters.
-    | PrimaryMethodCall Exp [RefType] Ident [Argument]
+    | PrimaryMethodCall ( ExpA a) [RefType] Ident [ArgumentA a]
     -- | Invoking a method of the super class, giving arguments for any generic type parameters.
-    | SuperMethodCall [RefType] Ident [Argument]
+    | SuperMethodCall [RefType] Ident [ArgumentA a]
     -- | Invoking a method of the superclass of a named class, giving arguments for any generic type parameters.
-    | ClassMethodCall Name [RefType] Ident [Argument]
+    | ClassMethodCall Name [RefType] Ident [ArgumentA a]
     -- | Invoking a method of a named type, giving arguments for any generic type parameters.
-    | TypeMethodCall  Name [RefType] Ident [Argument]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+    | TypeMethodCall  Name [RefType] Ident [ArgumentA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+type MethodInvocation = MethodInvocationA ()
 
 -- | An array initializer may be specified in a declaration, or as part of an array creation expression, creating an
 --   array and providing some initial values
-data ArrayInit
-    = ArrayInit [VarInit]
-  deriving (Eq,Show,Read,Typeable,Generic,Data)
+data ArrayInitA a
+    = ArrayInitA [VarInitA a]
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+unfunctor ''ArrayInitA
+unfunctor ''ClassDeclA
+unfunctor ''TypeDeclA
+unfunctor ''ClassBodyA
+unfunctor ''EnumBodyA
+unfunctor ''EnumConstantA
+unfunctor ''InterfaceDeclA
+unfunctor ''InterfaceBodyA
+unfunctor ''DeclA
+unfunctor ''MemberDeclA
+unfunctor ''VarDeclA
+unfunctor ''VarInitA
+unfunctor ''FormalParamA
+unfunctor ''MethodBodyA
+unfunctor ''ExplConstrInvA
+unfunctor ''ElementValueA
+unfunctor ''BlockA
+unfunctor ''BlockStmtA
+unfunctor ''StmtA
+unfunctor ''CatchA
+unfunctor ''SwitchBlockA
+unfunctor ''ForInitA
+unfunctor ''ExpA
+type Argument = Exp
+unfunctor ''LhsA
+unfunctor ''ArrayIndexA
+unfunctor ''FieldAccessA
+unfunctor ''LambdaParamsA
