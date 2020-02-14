@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, TupleSections #-}
 module Language.Java.Parser (
-    parser,
+    parser, parseCompilationUnit, parseCompilationUnitA,
 
     compilationUnit, packageDecl, importDecl, typeDecl,
 
@@ -32,7 +32,7 @@ module Language.Java.Parser (
 
     comma, semiColon, period, colon,
 
-    P
+    P, Loc, sourceLine, sourceColumn
 
     ) where
 
@@ -260,7 +260,7 @@ methodDecl = do
     fps <- formalParams
     thr <- lopt throws
     bod <- methodBody
-    return $ \ms -> MethodDeclA ms tps rt id fps thr Nothing bod pos
+    return $ \ms -> MethodDeclA ms tps rt id fps thr NoneA bod pos
 
 methodBody :: P ( MethodBodyA Loc )
 methodBody = MethodBodyA <$>
@@ -330,12 +330,12 @@ absMethodDecl = do
     id  <- ident
     fps <- formalParams
     thr <- lopt throws
-    def <- opt defaultValue
+    def <- defaultValue
     semiColon
     return $ \ms -> MethodDeclA ms tps rt id fps thr def (MethodBodyA Nothing) pos
 
-defaultValue :: P (ExpA Loc)
-defaultValue = tok KW_Default >> exp
+defaultValue :: P (DefaultValueA Loc)
+defaultValue = tok KW_Default >> (SingleA <$> exp <|> ArrayA <$> braces (list exp)) <|> pure NoneA
 
 throws :: P [RefType]
 throws = tok KW_Throws >> refTypeList
@@ -852,7 +852,7 @@ lambdaExp = capturePosition $ LambdaA
 methodRef :: P (ExpA Loc)
 methodRef = capturePosition $ MethodRefA
             <$> (name <*  (tok MethodRefSep))
-            <*> ident
+            <*> ((tok KW_New >> pure Nothing) <|> Just <$> ident)
 
 {-
 instanceCreation =

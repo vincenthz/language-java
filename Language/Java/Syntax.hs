@@ -13,6 +13,7 @@ module Language.Java.Syntax
     , InterfaceKind(..)
     , DeclA(..)
     , MemberDeclA(..)
+    , DefaultValueA(..)
     , VarDeclA(..)
     , VarDeclId(..)
     , VarInitA(..)
@@ -70,6 +71,10 @@ module Language.Java.Syntax
     , pattern ConstructorDecl
     , pattern MemberClassDecl
     , pattern MemberInterfaceDecl
+    , DefaultValue
+    , pattern None
+    , pattern Single
+    , pattern Array
     , VarDecl
     , pattern VarDecl
     , VarInit
@@ -269,13 +274,19 @@ data MemberDeclA a
     -- | The variables of a class type are introduced by field declarations.
     = FieldDeclA [ModifierA a] Type [VarDeclA a] a
     -- | A method declares executable code that can be invoked, passing a fixed number of values as arguments.
-    | MethodDeclA      [ModifierA a] [TypeParam] (Maybe Type) Ident [FormalParamA a] [ExceptionType] (Maybe ( ExpA a)) ( MethodBodyA a) a
+    | MethodDeclA      [ModifierA a] [TypeParam] (Maybe Type) Ident [FormalParamA a] [ExceptionType] (DefaultValueA a) ( MethodBodyA a) a
     -- | A constructor is used in the creation of an object that is an instance of a class.
     | ConstructorDeclA [ModifierA a] [TypeParam]              Ident [FormalParamA a] [ExceptionType] ( ConstructorBodyA a) a
     -- | A member class is a class whose declaration is directly enclosed in another class or interface declaration.
     | MemberClassDeclA ( ClassDeclA a) a
     -- | A member interface is an interface whose declaration is directly enclosed in another class or interface declaration.
     | MemberInterfaceDeclA ( InterfaceDeclA a) a
+  deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
+
+data DefaultValueA a
+    = NoneA
+    | SingleA (ExpA a)
+    | ArrayA [ExpA a]
   deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | A declaration of a variable, which may be explicitly initialized.
@@ -551,7 +562,7 @@ data ExpA a
     -- | Lambda expression
     | LambdaA (LambdaParamsA a) ( LambdaExpressionA a) a
     -- | Method reference
-    | MethodRefA Name Ident a
+    | MethodRefA Name (Maybe Ident ) a
   deriving (Eq,Show,Read,Typeable,Generic,Data, Functor)
 
 -- | The left-hand side of an assignment expression. This operand may be a named variable, such as a local
@@ -645,3 +656,4 @@ unfunctor ''LhsA
 unfunctor ''ArrayIndexA
 unfunctor ''FieldAccessA
 unfunctor ''LambdaParamsA
+unfunctor ''DefaultValueA

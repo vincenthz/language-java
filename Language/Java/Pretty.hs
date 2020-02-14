@@ -366,7 +366,7 @@ instance Pretty Exp where
     prettyPrec p params <+> text "->" <+> prettyPrec p body
 
   prettyPrec p (MethodRef i1 i2) =
-    prettyPrec p i1 <+> text "::" <+> prettyPrec p i2
+    prettyPrec p i1 <+> text "::" <+> maybe (text "new") (prettyPrec p) i2
 
 instance Pretty LambdaParams where
   prettyPrec p (LambdaSingleParam ident) = prettyPrec p ident
@@ -539,9 +539,10 @@ ppThrows _ [] = empty
 ppThrows p ets = text "throws"
     <+> hsep (punctuate comma (map (prettyPrec p) ets))
 
-ppDefault :: Int -> Maybe Exp -> Doc
-ppDefault _ Nothing = empty
-ppDefault p (Just exp) = text "default" <+> prettyPrec p exp
+ppDefault :: Int -> DefaultValue -> Doc
+ppDefault _ None = empty
+ppDefault p (Single exp) = text "default" <+> prettyPrec p exp
+ppDefault p (Array exps) = text "default" <+> braceBlock (map (prettyPrec p) exps)
 
 ppResultType :: Int -> Maybe Type -> Doc
 ppResultType _ Nothing = text "void"
