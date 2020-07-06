@@ -25,7 +25,7 @@ $javaLetter = [a-zA-Z\_\$]
 $javaDigit = $digit
 $javaLetterOrDigit = [a-zA-Z0-9\_\$]
 
-@octEscape = [0123]? $octdig{1,2}
+@octEscape = [0-3]? $octdig{1,2}
 @hexEscape = u $hexdig{4}
 @charEscape = \\ (@octEscape | @hexEscape | [btnfr\"\'\\])
 
