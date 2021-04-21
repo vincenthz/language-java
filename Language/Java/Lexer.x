@@ -21,9 +21,9 @@ $hexdig     = [0-9A-Fa-f]
 @linecomm = "//" .* @lineterm
 @comm = @tradcomm | @linecomm
 
-$javaLetter = [a-zA-Z\_\$]
+$javaLetter = [a-zA-Z\_\$\x3a3-\x3ce]
 $javaDigit = $digit
-$javaLetterOrDigit = [a-zA-Z0-9\_\$]
+$javaLetterOrDigit = [a-zA-Z0-9\_\$\x3a3-\x3ce]
 
 @octEscape = [0123]? $octdig{1,2}
 @hexEscape = u $hexdig{4}
